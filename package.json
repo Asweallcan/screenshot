@@ -1,0 +1,13 @@
+{
+  "name": "electron",
+  "version": "1.0.0",
+  "main": "main/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "nodemon --exec electron . --ext .js,.html,.css"
+  },
+  "dependencies": {
+    "electron": "^29.1.4",
+    "nodemon": "^3.1.0"
+  }
+}
