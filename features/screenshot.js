@@ -9,6 +9,7 @@ const {
 const path = require("path");
 
 exports.screenshotWindow = {
+  enable: false,
   /**
    * @type BrowserWindow
    */
@@ -16,7 +17,7 @@ exports.screenshotWindow = {
 };
 
 exports.screenshot = async () => {
-  if (this.screenshotWindow.current) return;
+  if (this.screenshotWindow.enable) return;
 
   if (systemPreferences.getMediaAccessStatus("screen") !== "granted") {
     dialog.showErrorBox("抱歉！", "请在设置里打开录屏权限");
@@ -29,6 +30,8 @@ exports.screenshot = async () => {
     scaleFactor,
   } = screen.getPrimaryDisplay();
 
+  const s = Date.now();
+
   const source = (
     await desktopCapturer.getSources({
       types: ["screen"],
@@ -39,16 +42,18 @@ exports.screenshot = async () => {
     })
   ).find((source) => source.display_id == id);
 
+  console.error(Date.now() - s);
+
   this.screenshotWindow.current = new BrowserWindow({
     x,
     y,
-    frame: false,
     width,
     height,
+    show: false,
+    frame: false,
     movable: false,
     closable: false,
     resizable: false,
-    focusable: false,
     hasShadow: false,
     alwaysOnTop: true,
     transparent: true,
@@ -58,30 +63,26 @@ exports.screenshot = async () => {
       preload: path.resolve(__dirname, "../preload/screenshot.js"),
     },
   });
-
-  BrowserWindow.getAllWindows().forEach((window) => {
-    if (!window.isFocused()) {
-      window.blur();
-      window.setFocusable(false);
-    }
-  });
-
   this.screenshotWindow.current.setAlwaysOnTop(true, "screen-saver");
   this.screenshotWindow.current.setFullScreenable(false);
   this.screenshotWindow.current.setVisibleOnAllWorkspaces(true);
   this.screenshotWindow.current.loadFile(
     path.resolve(__dirname, "../renderers/screenshot.html")
   );
+
+  this.screenshotWindow.current.on("ready-to-show", () => {
+    this.screenshotWindow.enable = true;
+    this.screenshotWindow.current.showInactive();
+  });
+
   this.screenshotWindow.current.webContents.executeJavaScript(
     `init("${source.thumbnail.toDataURL()}")`
   );
 
-  globalShortcut.register("Esc", () => {
+  globalShortcut.register("Esc", async () => {
     this.screenshotWindow.current.destroy();
     this.screenshotWindow.current = null;
+    this.screenshotWindow.enable = false;
     globalShortcut.unregister("Esc");
-    BrowserWindow.getAllWindows().forEach((window) => {
-      window.setFocusable(true);
-    });
   });
 };

@@ -1,5 +1,4 @@
-const { ipcMain, clipboard } = require("electron");
-const { exec } = require("child_process");
+const { ipcMain } = require("electron");
 
 const { screenshot } = require("../features/screenshot");
 
