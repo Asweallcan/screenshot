@@ -4,7 +4,8 @@
   "main": "main/index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon --exec electron . --ext .js,.html,.css"
+    "start": "bin/start.sh",
+    "build": "bin/build.sh"
   },
   "dependencies": {
     "react": "^18.2.0",

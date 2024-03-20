@@ -1,14 +1,14 @@
-const {
+import {
   screen,
   dialog,
   BrowserWindow,
   globalShortcut,
   systemPreferences,
   desktopCapturer,
-} = require("electron");
-const path = require("path");
+} from "electron";
+import path from "path";
 
-exports.screenshotWindow = {
+export const screenshotWindow = {
   enable: false,
   /**
    * @type BrowserWindow[]
@@ -16,15 +16,15 @@ exports.screenshotWindow = {
   current: [],
 };
 
-exports.screenshot = async () => {
-  if (this.screenshotWindow.enable) return;
+export const screenshot = async () => {
+  if (screenshotWindow.enable) return;
   if (systemPreferences.getMediaAccessStatus("screen") !== "granted") {
     dialog.showErrorBox("抱歉！", "请在设置里打开录屏权限");
     return;
   }
 
   const sources = await desktopCapturer.getSources({
-    types: ["screen", "window"],
+    types: ["screen"],
   });
 
   screen.getAllDisplays().map(async (display, index) => {
@@ -34,7 +34,7 @@ exports.screenshot = async () => {
       scaleFactor,
     } = display;
 
-    const source = sources.find((source) => source.display_id == id);
+    const source = sources.find((source) => +source.display_id === id);
 
     const win = new BrowserWindow({
       x,
@@ -60,25 +60,27 @@ exports.screenshot = async () => {
     win.setVisibleOnAllWorkspaces(true);
     win.webContents.openDevTools();
     win.webContents.executeJavaScript(
-      `window.screenInfo={ sourceId: "${source.id}", width: ${width}, height: ${height}, scaleFactor: ${scaleFactor} }`
+      `window.init({ sourceId: "${source.id}", width: ${width}, height: ${height}, scaleFactor: ${scaleFactor} });`
     );
-    win.loadFile(path.resolve(__dirname, "../renderers/screenshot/index.html"));
+    win.loadFile(
+      path.resolve(__dirname, "../../renderers/screenshot/index.html")
+    );
 
     win.on("ready-to-show", () => {
       win.showInactive();
     });
 
-    this.screenshotWindow.current[index] = win;
+    screenshotWindow.current[index] = win;
   });
 
-  this.screenshotWindow.enable = true;
+  screenshotWindow.enable = true;
 
   globalShortcut.register("Esc", async () => {
-    this.screenshotWindow.current.forEach((win) => {
+    screenshotWindow.current.forEach((win) => {
       win.destroy();
     });
-    this.screenshotWindow.current = [];
-    this.screenshotWindow.enable = false;
+    screenshotWindow.current = [];
+    screenshotWindow.enable = false;
     globalShortcut.unregister("Esc");
   });
 };

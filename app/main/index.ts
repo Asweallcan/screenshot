@@ -1,6 +1,6 @@
-const { app } = require("electron");
+import { app } from "electron";
 
-const { createWindow } = require("./main");
+import { createWindow } from "./main";
 
 app.whenReady().then(() => {
   require("./handle");
