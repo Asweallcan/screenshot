@@ -60,7 +60,7 @@ exports.screenshot = async () => {
     win.setVisibleOnAllWorkspaces(true);
     win.webContents.openDevTools();
     win.webContents.executeJavaScript(
-      `init("${source.id}", ${width}, ${height}, ${scaleFactor})`
+      `window.screenInfo={ sourceId: "${source.id}", width: ${width}, height: ${height}, scaleFactor: ${scaleFactor} }`
     );
     win.loadFile(path.resolve(__dirname, "../renderers/screenshot/index.html"));
 
