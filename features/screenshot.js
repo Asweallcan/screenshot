@@ -11,77 +11,73 @@ const path = require("path");
 exports.screenshotWindow = {
   enable: false,
   /**
-   * @type BrowserWindow
+   * @type BrowserWindow[]
    */
-  current: null,
+  current: [],
 };
 
 exports.screenshot = async () => {
   if (this.screenshotWindow.enable) return;
-
   if (systemPreferences.getMediaAccessStatus("screen") !== "granted") {
     dialog.showErrorBox("抱歉！", "请在设置里打开录屏权限");
     return;
   }
 
-  const {
-    id,
-    bounds: { width, height, x, y },
-    scaleFactor,
-  } = screen.getPrimaryDisplay();
+  const sources = await desktopCapturer.getSources({
+    types: ["screen", "window"],
+  });
 
-  const s = Date.now();
+  screen.getAllDisplays().map(async (display, index) => {
+    const {
+      id,
+      bounds: { x, y, width, height },
+      scaleFactor,
+    } = display;
 
-  const source = (
-    await desktopCapturer.getSources({
-      types: ["screen"],
-      thumbnailSize: {
-        width: width * scaleFactor,
-        height: height * scaleFactor,
+    const source = sources.find((source) => source.display_id == id);
+
+    const win = new BrowserWindow({
+      x,
+      y,
+      width,
+      height,
+      show: false,
+      frame: false,
+      movable: false,
+      closable: false,
+      resizable: false,
+      hasShadow: false,
+      alwaysOnTop: true,
+      transparent: true,
+      roundedCorners: false,
+      enableLargerThanScreen: true,
+      webPreferences: {
+        preload: path.resolve(__dirname, "../preload/screenshot.js"),
       },
-    })
-  ).find((source) => source.display_id == id);
+    });
+    win.setAlwaysOnTop(true, "screen-saver");
+    win.setFullScreenable(false);
+    win.setVisibleOnAllWorkspaces(true);
+    win.webContents.openDevTools();
+    win.webContents.executeJavaScript(
+      `init("${source.id}", ${width}, ${height}, ${scaleFactor})`
+    );
+    win.loadFile(path.resolve(__dirname, "../renderers/screenshot/index.html"));
 
-  console.error(Date.now() - s);
+    win.on("ready-to-show", () => {
+      win.showInactive();
+    });
 
-  this.screenshotWindow.current = new BrowserWindow({
-    x,
-    y,
-    width,
-    height,
-    show: false,
-    frame: false,
-    movable: false,
-    closable: false,
-    resizable: false,
-    hasShadow: false,
-    alwaysOnTop: true,
-    transparent: true,
-    roundedCorners: false,
-    enableLargerThanScreen: true,
-    webPreferences: {
-      preload: path.resolve(__dirname, "../preload/screenshot.js"),
-    },
-  });
-  this.screenshotWindow.current.setAlwaysOnTop(true, "screen-saver");
-  this.screenshotWindow.current.setFullScreenable(false);
-  this.screenshotWindow.current.setVisibleOnAllWorkspaces(true);
-  this.screenshotWindow.current.loadFile(
-    path.resolve(__dirname, "../renderers/screenshot.html")
-  );
-
-  this.screenshotWindow.current.on("ready-to-show", () => {
-    this.screenshotWindow.enable = true;
-    this.screenshotWindow.current.showInactive();
+    this.screenshotWindow.current[index] = win;
   });
 
-  this.screenshotWindow.current.webContents.executeJavaScript(
-    `init("${source.thumbnail.toDataURL()}")`
-  );
+  this.screenshotWindow.enable = true;
 
   globalShortcut.register("Esc", async () => {
-    this.screenshotWindow.current.destroy();
-    this.screenshotWindow.current = null;
+    this.screenshotWindow.current.forEach((win) => {
+      win.destroy();
+    });
+    this.screenshotWindow.current = [];
     this.screenshotWindow.enable = false;
     globalShortcut.unregister("Esc");
   });
