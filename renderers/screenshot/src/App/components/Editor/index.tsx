@@ -121,9 +121,7 @@ export const Editor: React.FC<{
   });
 
   const setDrawTool = useCallback((drawTool: DrawTool) => {
-    if (drawTool) {
-      interactiveState.current.forbidMove = true;
-    }
+    interactiveState.current.forbidMove = true;
     _setDrawTool(drawTool);
   }, []);
 

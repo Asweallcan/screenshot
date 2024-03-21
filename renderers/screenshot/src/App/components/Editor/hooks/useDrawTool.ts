@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import Konva from "konva";
 
 import { DrawTool, DrawTools } from "../types";
@@ -56,7 +56,7 @@ const draw = <T extends DrawTool>(
       x: left + width / 2,
       y: top + height / 2,
     });
-    drawingItem.radius({
+    (drawingItem as Konva.Ellipse).radius({
       x: width / 2,
       y: height / 2,
     });
@@ -115,7 +115,8 @@ export const useDrawTool = <T extends DrawTool>(props: {
       );
     });
 
-    document.body.addEventListener("mouseup", () => {
+    editor.current.addEventListener("mouseup", () => {
+      if (!drawing.current) return;
       drawing.current = false;
 
       setOperations(operationsRef.current.concat(drawingItem.current));

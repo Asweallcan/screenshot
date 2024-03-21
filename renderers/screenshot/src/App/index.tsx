@@ -28,11 +28,7 @@ export const App: React.FC = () => {
         const scaleWidth = width * scaleFactor,
           scaleHeight = height * scaleFactor;
 
-        setSize({
-          width,
-          height,
-          scaleFactor,
-        });
+        setSize(screenInfo);
 
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
