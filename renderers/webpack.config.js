@@ -59,6 +59,17 @@ const config = {
       chunks: ["index"],
     }),
   ],
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+          name: "vendors", // 拆分后的包名
+          chunks: "all",
+        },
+      },
+    },
+  },
 };
 
 module.exports = config;

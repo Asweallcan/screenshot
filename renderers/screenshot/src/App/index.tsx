@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Editor } from "../Editor";
+import React, { useEffect, useRef, useState } from "react";
+import { Editor } from "./components/Editor";
 
 import "./style.less";
 
@@ -7,7 +7,7 @@ export const App: React.FC = () => {
   const bgCanvas = useRef<HTMLCanvasElement>(null);
   const bgCanvasCtx = useRef<CanvasRenderingContext2D>();
 
-  const [size, setSize] = useState({
+  const [{ width, height, scaleFactor }, setSize] = useState({
     width: 0,
     height: 0,
     scaleFactor: 0,
@@ -69,11 +69,11 @@ export const App: React.FC = () => {
       <div className="mask"></div>
       <canvas
         ref={bgCanvas}
-        width={size.width * size.scaleFactor}
-        height={size.height * size.scaleFactor}
+        width={width * scaleFactor}
+        height={height * scaleFactor}
         style={{
-          width: size.width,
-          height: size.height,
+          width,
+          height,
         }}
         className="bg"
       ></canvas>
