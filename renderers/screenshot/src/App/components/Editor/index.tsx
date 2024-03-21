@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, RefObject } from "react";
+import React, { useEffect, useRef, RefObject, useState, useMemo } from "react";
 
 import { useSelectEditor } from "./hooks/useSelectEditor";
 import { useMoveEditor } from "./hooks/useMoveEditor";
+import { useRefState } from "../../../hooks";
 
 import "./style.less";
 
@@ -17,11 +18,40 @@ export const Editor: React.FC<{
     forbidSelect: false,
   });
 
-  const size = useRef<HTMLDivElement>(null);
   const editor = useRef<HTMLDivElement>(null);
   const editorCanvas = useRef<HTMLCanvasElement>(null);
   const editorCanvasCtx = useRef<CanvasRenderingContext2D>();
-  const offset = useRef({ x: 0, y: 0 });
+
+  const [sizeInfo, setSizeInfo] = useState("");
+  const [editorPosSize, editorPosSizeRef, setEditorPosSize] = useRefState(
+    {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+    },
+    true
+  );
+  const [editorOffset, editorOffsetRef, setEditorOffset] = useRefState({
+    x: 0,
+    y: 0,
+  });
+  const [editorCanvasSize, editorCanvasSizeRef, setEditorCanvasSize] =
+    useRefState({
+      width: 0,
+      height: 0,
+    });
+
+  const editorStyle = useMemo(() => {
+    return {
+      ...editorPosSize,
+      transform:
+        editorOffset.x || editorOffset.y
+          ? `translate(${editorOffset.x}px, ${editorOffset.y}px)`
+          : "unset",
+    };
+  }, [editorPosSize, editorOffset]);
+
   const startPos = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -29,28 +59,39 @@ export const Editor: React.FC<{
   }, []);
 
   useSelectEditor({
-    size,
-    editor,
     startPos,
     bgCanvasCtx,
-    editorCanvas,
+    editorPosSize,
     editorCanvasCtx,
     interactiveState,
+    setSizeInfo,
+    setEditorPosSize,
+    setEditorCanvasSize,
   });
 
   useMoveEditor({
     editor,
-    offset,
     startPos,
     bgCanvasCtx,
+    editorOffset,
+    editorOffsetRef,
+    editorPosSizeRef,
     editorCanvasCtx,
     interactiveState,
+    editorCanvasSizeRef,
+    setEditorOffset,
+    setEditorPosSize,
   });
 
   return (
-    <div ref={editor} className="editor">
-      <div ref={size} className="editor-size"></div>
-      <canvas ref={editorCanvas} className="editor-canvas" />
+    <div ref={editor} style={editorStyle} className="editor">
+      <div className="editor-size">{sizeInfo}</div>
+      <canvas
+        ref={editorCanvas}
+        width={editorCanvasSize.width}
+        height={editorCanvasSize.height}
+        className="editor-canvas"
+      />
     </div>
   );
 };

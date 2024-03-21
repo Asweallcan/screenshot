@@ -20,6 +20,8 @@ export const App: React.FC = () => {
       window.screenInfo = screenInfo;
 
       const { width, height, sourceId, scaleFactor } = screenInfo;
+      const scaleWidth = width * scaleFactor,
+        scaleHeight = height * scaleFactor;
 
       setSize({
         width,
@@ -34,10 +36,10 @@ export const App: React.FC = () => {
           mandatory: {
             chromeMediaSource: "desktop",
             chromeMediaSourceId: sourceId,
-            minWidth: width * scaleFactor,
-            minHeight: height * scaleFactor,
-            maxWidth: width * scaleFactor,
-            maxHeight: height * scaleFactor,
+            minWidth: scaleWidth,
+            minHeight: scaleHeight,
+            maxWidth: scaleWidth,
+            maxHeight: scaleHeight,
           },
         },
       });
@@ -47,13 +49,7 @@ export const App: React.FC = () => {
       video.onloadedmetadata = () => {
         video.play();
 
-        bgCanvasCtx.current.drawImage(
-          video,
-          0,
-          0,
-          width * scaleFactor,
-          height * scaleFactor
-        );
+        bgCanvasCtx.current.drawImage(video, 0, 0, scaleWidth, scaleHeight);
 
         video.remove();
         stream.getVideoTracks()[0].stop();
@@ -66,7 +62,7 @@ export const App: React.FC = () => {
 
   return (
     <>
-      <div className="mask"></div>
+      <div className="mask" />
       <canvas
         ref={bgCanvas}
         width={width * scaleFactor}
@@ -76,7 +72,7 @@ export const App: React.FC = () => {
           height,
         }}
         className="bg"
-      ></canvas>
+      />
       <Editor bgCanvasCtx={bgCanvasCtx}></Editor>
     </>
   );

@@ -1,14 +1,12 @@
-import { CSSProperties, MutableRefObject, useEffect } from "react";
+import { MutableRefObject, useEffect } from "react";
 
 export const useSelectEditor = (props: {
   startPos: MutableRefObject<{
     x: number;
     y: number;
   }>;
-  size: MutableRefObject<HTMLDivElement>;
-  editor: MutableRefObject<HTMLDivElement>;
   bgCanvasCtx: MutableRefObject<CanvasRenderingContext2D>;
-  editorCanvas: MutableRefObject<HTMLCanvasElement>;
+  editorPosSize: { width: number; height: number; top: number; left: number };
   interactiveState: MutableRefObject<{
     move: boolean;
     select: boolean;
@@ -16,16 +14,51 @@ export const useSelectEditor = (props: {
     forbidSelect: boolean;
   }>;
   editorCanvasCtx: MutableRefObject<CanvasRenderingContext2D>;
+  setSizeInfo(sizeInfo: string): void;
+  setEditorPosSize(posSize: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  }): void;
+  setEditorCanvasSize(size: { width: number; height: number }): void;
 }) => {
   const {
-    size,
-    editor,
     startPos,
     bgCanvasCtx,
-    editorCanvas,
+    editorPosSize,
     editorCanvasCtx,
     interactiveState,
+    setSizeInfo,
+    setEditorPosSize,
+    setEditorCanvasSize,
   } = props;
+
+  useEffect(() => {
+    if (!window.screenInfo) return;
+
+    const { scaleFactor } = window.screenInfo;
+    const { width, height, top, left } = editorPosSize;
+
+    if (!width || !height) return;
+
+    editorCanvasCtx.current.clearRect(
+      0,
+      0,
+      width * scaleFactor,
+      height * scaleFactor
+    );
+    editorCanvasCtx.current.putImageData(
+      bgCanvasCtx.current.getImageData(
+        left * scaleFactor,
+        top * scaleFactor,
+        width * scaleFactor,
+        height * scaleFactor
+      ),
+      0,
+      0
+    );
+  }, [editorPosSize]);
 
   useEffect(() => {
     document.body.addEventListener("mousedown", (e) => {
@@ -54,29 +87,17 @@ export const useSelectEditor = (props: {
       const width = Math.abs(x - pageX);
       const height = Math.abs(y - pageY);
 
-      size.current.textContent = `${width}x${height}`;
-      editor.current.style.cssText = `top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; display: block;`;
-      editorCanvas.current.width = width * scaleFactor;
-      editorCanvas.current.height = height * scaleFactor;
-
-      if (!width || !height) return;
-
-      editorCanvasCtx.current.clearRect(
-        0,
-        0,
-        width * scaleFactor,
-        height * scaleFactor
-      );
-      editorCanvasCtx.current.putImageData(
-        bgCanvasCtx.current.getImageData(
-          left * scaleFactor,
-          top * scaleFactor,
-          width * scaleFactor,
-          height * scaleFactor
-        ),
-        0,
-        0
-      );
+      setSizeInfo(`${width}x${height}`);
+      setEditorPosSize({
+        top,
+        left,
+        width,
+        height,
+      });
+      setEditorCanvasSize({
+        width: width * scaleFactor,
+        height: height * scaleFactor,
+      });
     });
 
     document.body.addEventListener("mouseup", () => {
