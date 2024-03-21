@@ -8,6 +8,7 @@ export const App: React.FC = () => {
   const bgCanvas = useRef<HTMLCanvasElement>(null);
   const bgCanvasCtx = useRef<CanvasRenderingContext2D>();
 
+  const [initialized, setInitialized] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(true);
   const [{ width, height, scaleFactor }, setSize] = useState({
     width: 0,
@@ -56,6 +57,7 @@ export const App: React.FC = () => {
           bgCanvasCtx.current.drawImage(video, 0, 0, scaleWidth, scaleHeight);
           video.remove();
           stream.getVideoTracks()[0].stop();
+          setInitialized(true);
         };
 
         video.srcObject = stream;
@@ -81,7 +83,7 @@ export const App: React.FC = () => {
         }}
         className="bg"
       />
-      <div className="mask" />
+      {initialized ? <div className="mask" /> : null}
       <Editor bgCanvasCtx={bgCanvasCtx} onStartSelect={onStartSelect}></Editor>
       {showColorPicker ? <ColorPicker bgCanvasCtx={bgCanvasCtx} /> : null}
     </>
