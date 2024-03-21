@@ -8,8 +8,9 @@ import "./style.less";
 
 export const Editor: React.FC<{
   bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
+  onStartSelect(): void;
 }> = (props) => {
-  const { bgCanvasCtx } = props;
+  const { bgCanvasCtx, onStartSelect } = props;
 
   const interactiveState = useRef({
     move: false,
@@ -57,6 +58,12 @@ export const Editor: React.FC<{
   useEffect(() => {
     editorCanvasCtx.current = editorCanvas.current?.getContext("2d")!;
   }, []);
+
+  useEffect(() => {
+    if (editorPosSize.width > 0) {
+      onStartSelect();
+    }
+  }, [editorPosSize.width]);
 
   useSelectEditor({
     startPos,

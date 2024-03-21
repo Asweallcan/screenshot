@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Editor } from "./components/Editor";
+import { ColorPicker } from "./components/ColorPicker";
 
 import "./style.less";
 
@@ -7,6 +8,7 @@ export const App: React.FC = () => {
   const bgCanvas = useRef<HTMLCanvasElement>(null);
   const bgCanvasCtx = useRef<CanvasRenderingContext2D>();
 
+  const [showColorPicker, setShowColorPicker] = useState(true);
   const [{ width, height, scaleFactor }, setSize] = useState({
     width: 0,
     height: 0,
@@ -50,7 +52,6 @@ export const App: React.FC = () => {
         video.play();
 
         bgCanvasCtx.current.drawImage(video, 0, 0, scaleWidth, scaleHeight);
-
         video.remove();
         stream.getVideoTracks()[0].stop();
       };
@@ -60,9 +61,13 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  const onStartSelect = useCallback(() => {
+    if (!showColorPicker) return;
+    setShowColorPicker(false);
+  }, [showColorPicker]);
+
   return (
     <>
-      <div className="mask" />
       <canvas
         ref={bgCanvas}
         width={width * scaleFactor}
@@ -73,7 +78,9 @@ export const App: React.FC = () => {
         }}
         className="bg"
       />
-      <Editor bgCanvasCtx={bgCanvasCtx}></Editor>
+      <div className="mask" />
+      <Editor bgCanvasCtx={bgCanvasCtx} onStartSelect={onStartSelect}></Editor>
+      {showColorPicker ? <ColorPicker bgCanvasCtx={bgCanvasCtx} /> : null}
     </>
   );
 };
