@@ -1,11 +1,11 @@
 import { MutableRefObject, useCallback, useRef, useState } from "react";
 
-export const useRefState = <T>(initialState: T, merge?: boolean) => {
+export const useRefState = <T>(initialState: T) => {
   const stateRef = useRef(initialState);
   const [state, _setState] = useState(initialState);
 
   const setState = useCallback((state: T) => {
-    stateRef.current = merge ? { ...stateRef.current, ...state } : state;
+    stateRef.current = state;
     _setState(stateRef.current);
   }, []);
 

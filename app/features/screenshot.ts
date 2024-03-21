@@ -1,19 +1,18 @@
 import {
   screen,
   dialog,
+  ipcMain,
   BrowserWindow,
   globalShortcut,
   systemPreferences,
   desktopCapturer,
 } from "electron";
 import path from "path";
+import { executeJavaScript } from "../utils";
 
 export const screenshotWindow = {
   enable: false,
-  /**
-   * @type BrowserWindow[]
-   */
-  current: [],
+  current: [] as BrowserWindow[],
 };
 
 export const screenshot = async () => {
@@ -52,19 +51,23 @@ export const screenshot = async () => {
       roundedCorners: false,
       enableLargerThanScreen: true,
       webPreferences: {
-        preload: path.resolve(__dirname, "../preload/screenshot.js"),
+        contextIsolation: false,
+        preload: path.resolve(__dirname, "../preload/index.js"),
       },
     });
     win.setAlwaysOnTop(true, "screen-saver");
     win.setFullScreenable(false);
     win.setVisibleOnAllWorkspaces(true);
-    win.webContents.openDevTools();
-    win.webContents.executeJavaScript(
-      `window.init({ sourceId: "${source.id}", width: ${width}, height: ${height}, scaleFactor: ${scaleFactor} });`
-    );
     win.loadFile(
       path.resolve(__dirname, "../../renderers/screenshot/index.html")
     );
+    win.webContents.openDevTools();
+    executeJavaScript(win, "initScreenshot", {
+      sourceId: source.id,
+      width,
+      height,
+      scaleFactor,
+    });
 
     win.on("ready-to-show", () => {
       win.showInactive();
@@ -74,13 +77,24 @@ export const screenshot = async () => {
   });
 
   screenshotWindow.enable = true;
+  globalShortcut.register("Esc", exitScreenshot);
+  ipcMain.on("exitScreenshot", exitScreenshot);
+  ipcMain.on("disableScreenshot", disableScreenshot);
+};
 
-  globalShortcut.register("Esc", async () => {
-    screenshotWindow.current.forEach((win) => {
-      win.destroy();
-    });
-    screenshotWindow.current = [];
-    screenshotWindow.enable = false;
-    globalShortcut.unregister("Esc");
+export const disableScreenshot = () => {
+  screenshotWindow.current.forEach((win) => {
+    executeJavaScript(win, "disableScreenshot");
   });
+};
+
+export const exitScreenshot = () => {
+  screenshotWindow.current.forEach((win) => {
+    win.destroy();
+  });
+  screenshotWindow.current = [];
+  screenshotWindow.enable = false;
+  globalShortcut.unregister("Esc");
+  ipcMain.off("exitScreenshot", exitScreenshot);
+  ipcMain.off("disableScreenshot", disableScreenshot);
 };

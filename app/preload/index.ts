@@ -1,7 +1,20 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { ipcRenderer } from "electron";
 
-contextBridge.exposeInMainWorld("bridge", {
+window.bridge = {
+  registerHandler(name, callback) {
+    if (!window.handler) {
+      window.handler = {};
+    }
+
+    window.handler[name] = callback;
+  },
   screenshot() {
     ipcRenderer.send("screenshot");
   },
-});
+  exitScreenshot() {
+    ipcRenderer.send("exitScreenshot");
+  },
+  disableScreenshot() {
+    ipcRenderer.send("disableScreenshot");
+  },
+};

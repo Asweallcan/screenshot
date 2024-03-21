@@ -5,5 +5,4 @@ interface Window {
     height: number;
     scaleFactor: number;
   };
-  init(screenInfo: Window["screenInfo"]): void;
 }

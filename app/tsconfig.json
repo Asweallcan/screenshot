@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "module": "NodeNext",
-    "target": "es5",
+    "target": "ES5",
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "NodeNext",
     "outDir": "../dist/app"
   },
-  "include": ["."]
+  "include": ["."],
+  "files": ["../global.d.ts"]
 }

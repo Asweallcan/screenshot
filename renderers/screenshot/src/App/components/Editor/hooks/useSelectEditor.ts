@@ -69,6 +69,8 @@ export const useSelectEditor = (props: {
         return;
       }
 
+      window.bridge.disableScreenshot();
+
       interactiveState.current.select = true;
 
       startPos.current.x = e.pageX;

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, RefObject, useState, useMemo } from "react";
 import { useSelectEditor } from "./hooks/useSelectEditor";
 import { useMoveEditor } from "./hooks/useMoveEditor";
 import { useRefState } from "../../../hooks";
+import { Toolbar } from "./components/Toolbar";
 
 import "./style.less";
 
@@ -57,6 +58,10 @@ export const Editor: React.FC<{
 
   useEffect(() => {
     editorCanvasCtx.current = editorCanvas.current?.getContext("2d")!;
+
+    window.bridge.registerHandler("disableScreenshot", () => {
+      interactiveState.current.forbidSelect = true;
+    });
   }, []);
 
   useEffect(() => {
@@ -99,6 +104,7 @@ export const Editor: React.FC<{
         height={editorCanvasSize.height}
         className="editor-canvas"
       />
+      <Toolbar editorCanvas={editorCanvas} editorCanvasCtx={editorCanvasCtx} />
     </div>
   );
 };

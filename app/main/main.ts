@@ -11,6 +11,7 @@ export const mainWindow = {
 export const createWindow = () => {
   mainWindow.current = new BrowserWindow({
     webPreferences: {
+      contextIsolation: false,
       preload: path.resolve(__dirname, "../preload/index.js"),
     },
   });
