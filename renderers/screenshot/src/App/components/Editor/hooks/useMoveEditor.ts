@@ -1,28 +1,26 @@
-import { MutableRefObject, useEffect, CSSProperties, Ref } from "react";
+import Konva from "konva";
+import { MutableRefObject, useEffect, RefObject } from "react";
 
 export const useMoveEditor = (props: {
-  editor: MutableRefObject<HTMLDivElement>;
+  editor: RefObject<HTMLDivElement>;
+  bgImage: RefObject<Konva.Image>;
   startPos: MutableRefObject<{
     x: number;
     y: number;
   }>;
-  bgCanvasCtx: MutableRefObject<CanvasRenderingContext2D>;
-  editorOffset: { x: number; y: number };
-  editorOffsetRef: MutableRefObject<{ x: number; y: number }>;
-  editorPosSizeRef: MutableRefObject<{
+  editorOffset: MutableRefObject<{ x: number; y: number }>;
+  editorPosSize: MutableRefObject<{
     left: number;
     top: number;
     width: number;
     height: number;
   }>;
-  editorCanvasCtx: MutableRefObject<CanvasRenderingContext2D>;
   interactiveState: MutableRefObject<{
     move: boolean;
     select: boolean;
     forbidMove: boolean;
     forbidSelect: boolean;
   }>;
-  editorCanvasSizeRef: MutableRefObject<{ width: number; height: number }>;
   setEditorOffset(offset: { x: number; y: number }): void;
   setEditorPosSize(posSize: {
     top: number;
@@ -33,41 +31,14 @@ export const useMoveEditor = (props: {
 }) => {
   const {
     editor,
+    bgImage,
     startPos,
-    bgCanvasCtx,
     editorOffset,
-    editorOffsetRef,
-    editorPosSizeRef,
-    editorCanvasCtx,
+    editorPosSize,
     interactiveState,
-    editorCanvasSizeRef,
     setEditorOffset,
     setEditorPosSize,
   } = props;
-
-  useEffect(() => {
-    if (!window.screenInfo) return;
-
-    const { x, y } = editorOffset;
-    const { scaleFactor } = window.screenInfo;
-
-    editorCanvasCtx.current.clearRect(
-      0,
-      0,
-      editorCanvasSizeRef.current.width,
-      editorCanvasSizeRef.current.height
-    );
-    editorCanvasCtx.current.putImageData(
-      bgCanvasCtx.current.getImageData(
-        (editorPosSizeRef.current.left + x) * scaleFactor,
-        (editorPosSizeRef.current.top + y) * scaleFactor,
-        editorCanvasSizeRef.current.width,
-        editorCanvasSizeRef.current.height
-      ),
-      0,
-      0
-    );
-  }, [editorOffset]);
 
   useEffect(() => {
     editor.current.addEventListener("mousedown", (e) => {
@@ -86,9 +57,19 @@ export const useMoveEditor = (props: {
     document.body.addEventListener("mousemove", (e) => {
       if (!interactiveState.current.move) return;
 
+      const { scaleFactor } = window.screenInfo;
+
+      const x = e.pageX - startPos.current.x,
+        y = e.pageY - startPos.current.y;
+
       setEditorOffset({
-        x: e.pageX - startPos.current.x,
-        y: e.pageY - startPos.current.y,
+        x,
+        y,
+      });
+
+      bgImage.current.offset({
+        x: (editorPosSize.current.left + x) * scaleFactor,
+        y: (editorPosSize.current.top + y) * scaleFactor,
       });
     });
 
@@ -97,9 +78,9 @@ export const useMoveEditor = (props: {
       interactiveState.current.move = false;
 
       setEditorPosSize({
-        ...editorPosSizeRef.current,
-        top: editorPosSizeRef.current.top + editorOffsetRef.current.y,
-        left: editorPosSizeRef.current.left + editorOffsetRef.current.x,
+        ...editorPosSize.current,
+        top: editorPosSize.current.top + editorOffset.current.y,
+        left: editorPosSize.current.left + editorOffset.current.x,
       });
       setEditorOffset({ x: 0, y: 0 });
     });

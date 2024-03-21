@@ -52,8 +52,6 @@ export const ColorPicker: React.FC<{
   }, []);
 
   useEffect(() => {
-    if (!window.screenInfo) return;
-
     const { scaleFactor } = window.screenInfo;
     const [r, g, b, a] = bgCanvasCtx.current.getImageData(
       mousePos.x * scaleFactor,

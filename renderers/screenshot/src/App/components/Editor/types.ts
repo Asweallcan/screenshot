@@ -1,15 +1,19 @@
-interface DrawTools {
+import Konva from "konva";
+
+export interface DrawTools {
   rect: {
     color: string;
-    width: number;
+    strokeWidth: number;
+    item: Konva.Rect;
   };
   circle: {
     color: string;
-    width: number;
+    strokeWidth: number;
+    item: Konva.Ellipse;
   };
 }
 
 export type DrawTool<T extends keyof DrawTools = keyof DrawTools> = {
   name: T;
-  options: DrawTools[T];
+  options: Omit<DrawTools[T], "item">;
 };

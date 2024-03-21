@@ -3,13 +3,11 @@ import { RefObject, MutableRefObject, useEffect } from "react";
 
 export const useSelectEditor = (props: {
   stage: RefObject<Konva.Stage>;
-  bgLayer: RefObject<Konva.Layer>;
+  bgImage: RefObject<Konva.Image>;
   startPos: MutableRefObject<{
     x: number;
     y: number;
   }>;
-  bgCanvas: RefObject<HTMLCanvasElement>;
-  editorPosSize: { width: number; height: number; top: number; left: number };
   interactiveState: MutableRefObject<{
     move: boolean;
     select: boolean;
@@ -26,38 +24,12 @@ export const useSelectEditor = (props: {
 }) => {
   const {
     stage,
-    bgLayer,
+    bgImage,
     startPos,
-    bgCanvas,
-    editorPosSize,
     interactiveState,
     setSizeInfo,
     setEditorPosSize,
   } = props;
-
-  useEffect(() => {
-    if (!window.screenInfo) return;
-
-    const { top, left, width, height } = editorPosSize;
-
-    if (!width || !height) return;
-
-    const { scaleFactor } = window.screenInfo;
-
-    stage.current.width(width);
-    stage.current.height(height);
-
-    bgLayer.current.clear();
-    bgLayer.current.add(
-      new Konva.Image({
-        image: bgCanvas.current,
-        scale: {
-          x: 1 / scaleFactor,
-          y: 1 / scaleFactor,
-        },
-      })
-    );
-  }, [editorPosSize]);
 
   useEffect(() => {
     document.body.addEventListener("mousedown", (e) => {
@@ -81,7 +53,6 @@ export const useSelectEditor = (props: {
 
       const { x, y } = startPos.current;
       const { pageX, pageY } = e;
-      const { scaleFactor } = window.screenInfo;
 
       const left = Math.min(x, pageX);
       const top = Math.min(y, pageY);
@@ -94,6 +65,19 @@ export const useSelectEditor = (props: {
         left,
         width,
         height,
+      });
+
+      if (!width || !height) return;
+
+      const { scaleFactor } = window.screenInfo;
+
+      stage.current.setSize({
+        width,
+        height,
+      });
+      bgImage.current.offset({
+        x: left * scaleFactor,
+        y: top * scaleFactor,
       });
     });
 

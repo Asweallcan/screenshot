@@ -1869,8 +1869,8 @@ kind-of@^6.0.2:
 
 konva@^9.3.6:
   version "9.3.6"
-  resolved "http://r.npm.sankuai.com/konva/download/konva-9.3.6.tgz#62b36292dbe06c56eb161d5ead221c2b5c5a8926"
-  integrity sha1-YrNiktvgbFbrFh1erSIcK1xaiSY=
+  resolved "https://mirrors.huaweicloud.com/repository/npm/konva/-/konva-9.3.6.tgz#62b36292dbe06c56eb161d5ead221c2b5c5a8926"
+  integrity sha512-dqR8EbcM0hjuilZCBP6xauQ5V3kH3m9kBcsDkqPypQuRgsXbcXUrxqYxhNbdvKZpYNW8Amq94jAD/C0NY3qfBQ==
 
 launch-editor@^2.6.1:
   version "2.6.1"
@@ -3153,9 +3153,9 @@ webpack-cli@^5.1.4:
     webpack-merge "^5.7.3"
 
 webpack-dev-middleware@^7.1.0:
-  version "7.1.0"
-  resolved "http://r.npm.sankuai.com/webpack-dev-middleware/download/webpack-dev-middleware-7.1.0.tgz#7255e24924d4abda607a6ed76941ae35e6051a9f"
-  integrity sha1-clXiSSTUq9pgem7XaUGuNeYFGp8=
+  version "7.1.1"
+  resolved "https://mirrors.huaweicloud.com/repository/npm/webpack-dev-middleware/-/webpack-dev-middleware-7.1.1.tgz#29aefd73720a03889e1c5c8dd7e552c4d333d572"
+  integrity sha512-NmRVq4AvRQs66dFWyDR4GsFDJggtSi2Yn38MXLk0nffgF9n/AIP4TFBg2TQKYaRAN4sHuKOTiz9BnNCENDLEVA==
   dependencies:
     colorette "^2.0.10"
     memfs "^4.6.0"
@@ -3166,8 +3166,8 @@ webpack-dev-middleware@^7.1.0:
 
 webpack-dev-server@^5.0.4:
   version "5.0.4"
-  resolved "http://r.npm.sankuai.com/webpack-dev-server/download/webpack-dev-server-5.0.4.tgz#cb6ea47ff796b9251ec49a94f24a425e12e3c9b8"
-  integrity sha1-y26kf/eWuSUexJqU8kpCXhLjybg=
+  resolved "https://mirrors.huaweicloud.com/repository/npm/webpack-dev-server/-/webpack-dev-server-5.0.4.tgz#cb6ea47ff796b9251ec49a94f24a425e12e3c9b8"
+  integrity sha512-dljXhUgx3HqKP2d8J/fUMvhxGhzjeNVarDLcbO/EWMSgRizDkxHQDZQaLFL5VJY9tRBj2Gz+rvCEYYvhbqPHNA==
   dependencies:
     "@types/bonjour" "^3.5.13"
     "@types/connect-history-api-fallback" "^1.5.4"

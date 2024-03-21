@@ -33,6 +33,7 @@ export const Editor: React.FC<{
   const editor = useRef<HTMLDivElement>(null);
   const stage = useRef<Konva.Stage>();
   const bgLayer = useRef(new Konva.Layer());
+  const bgImage = useRef<Konva.Image>();
   const drawLayer = useRef(new Konva.Layer());
 
   const [drawTool, drawToolRef, _setDrawTool] = useRefState<DrawTool | null>(
@@ -67,11 +68,23 @@ export const Editor: React.FC<{
     window.bridge.registerHandler("disableScreenshot", () => {
       interactiveState.current.forbidSelect = true;
     });
+  }, []);
 
+  useEffect(() => {
+    const { scaleFactor } = window.screenInfo;
     stage.current = new Konva.Stage({
       container: "editor-canvas",
     });
+    bgImage.current = new Konva.Image({
+      image: bgCanvas.current,
+      scale: {
+        x: 1 / scaleFactor,
+        y: 1 / scaleFactor,
+      },
+    });
+    bgLayer.current.add(bgImage.current);
     stage.current.add(bgLayer.current);
+    stage.current.add(drawLayer.current);
   }, []);
 
   useEffect(() => {
@@ -82,33 +95,30 @@ export const Editor: React.FC<{
 
   useSelectEditor({
     stage,
-    bgLayer,
+    bgImage,
     startPos,
-    bgCanvas,
-    editorPosSize,
     interactiveState,
     setSizeInfo,
     setEditorPosSize,
   });
 
-  // useMoveEditor({
-  //   editor,
-  //   startPos,
-  //   editorOffset,
-  //   editorOffsetRef,
-  //   editorPosSizeRef,
-  //   editorCanvasCtx,
-  //   interactiveState,
-  //   editorCanvasSizeRef,
-  //   setEditorOffset,
-  //   setEditorPosSize,
-  // });
+  useMoveEditor({
+    editor,
+    bgImage,
+    startPos,
+    editorOffset: editorOffsetRef,
+    editorPosSize: editorPosSizeRef,
+    interactiveState,
+    setEditorOffset,
+    setEditorPosSize,
+  });
 
-  // useDrawTool({
-  //   drawTool: drawToolRef,
-  //   editorCanvas,
-  //   editorCanvasCtx,
-  // });
+  useDrawTool({
+    editor,
+    drawTool: drawToolRef,
+    drawLayer,
+    editorPosSize: editorPosSizeRef,
+  });
 
   const setDrawTool = useCallback((drawTool: DrawTool) => {
     if (drawTool) {
@@ -121,11 +131,7 @@ export const Editor: React.FC<{
     <div ref={editor} style={editorStyle} className="editor">
       <div className="editor-size">{sizeInfo}</div>
       <div id="editor-canvas" />
-      {/* <Toolbar
-        drawTool={drawTool}
-        editorCanvasCtx={editorCanvasCtx}
-        setDrawTool={setDrawTool}
-      /> */}
+      <Toolbar stage={stage} drawTool={drawTool} setDrawTool={setDrawTool} />
     </div>
   );
 };
