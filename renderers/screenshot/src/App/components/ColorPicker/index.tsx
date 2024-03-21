@@ -65,7 +65,6 @@ export const ColorPicker: React.FC<{
     setColor(rgbaToHex(r, g, b, a));
 
     zoomAreaCtx.current.clearRect(0, 0, 100, 100);
-
     zoomAreaCtx.current.putImageData(
       bgCanvasCtx.current.getImageData(
         mousePos.x * scaleFactor - 25 * scaleFactor,

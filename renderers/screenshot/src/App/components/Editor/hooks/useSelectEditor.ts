@@ -1,11 +1,14 @@
-import { MutableRefObject, useEffect } from "react";
+import Konva from "konva";
+import { RefObject, MutableRefObject, useEffect } from "react";
 
 export const useSelectEditor = (props: {
+  stage: RefObject<Konva.Stage>;
+  bgLayer: RefObject<Konva.Layer>;
   startPos: MutableRefObject<{
     x: number;
     y: number;
   }>;
-  bgCanvasCtx: MutableRefObject<CanvasRenderingContext2D>;
+  bgCanvas: RefObject<HTMLCanvasElement>;
   editorPosSize: { width: number; height: number; top: number; left: number };
   interactiveState: MutableRefObject<{
     move: boolean;
@@ -13,7 +16,6 @@ export const useSelectEditor = (props: {
     forbidMove: boolean;
     forbidSelect: boolean;
   }>;
-  editorCanvasCtx: MutableRefObject<CanvasRenderingContext2D>;
   setSizeInfo(sizeInfo: string): void;
   setEditorPosSize(posSize: {
     top: number;
@@ -21,42 +23,39 @@ export const useSelectEditor = (props: {
     width: number;
     height: number;
   }): void;
-  setEditorCanvasSize(size: { width: number; height: number }): void;
 }) => {
   const {
+    stage,
+    bgLayer,
     startPos,
-    bgCanvasCtx,
+    bgCanvas,
     editorPosSize,
-    editorCanvasCtx,
     interactiveState,
     setSizeInfo,
     setEditorPosSize,
-    setEditorCanvasSize,
   } = props;
 
   useEffect(() => {
     if (!window.screenInfo) return;
 
-    const { scaleFactor } = window.screenInfo;
-    const { width, height, top, left } = editorPosSize;
+    const { top, left, width, height } = editorPosSize;
 
     if (!width || !height) return;
 
-    editorCanvasCtx.current.clearRect(
-      0,
-      0,
-      width * scaleFactor,
-      height * scaleFactor
-    );
-    editorCanvasCtx.current.putImageData(
-      bgCanvasCtx.current.getImageData(
-        left * scaleFactor,
-        top * scaleFactor,
-        width * scaleFactor,
-        height * scaleFactor
-      ),
-      0,
-      0
+    const { scaleFactor } = window.screenInfo;
+
+    stage.current.width(width);
+    stage.current.height(height);
+
+    bgLayer.current.clear();
+    bgLayer.current.add(
+      new Konva.Image({
+        image: bgCanvas.current,
+        scale: {
+          x: 1 / scaleFactor,
+          y: 1 / scaleFactor,
+        },
+      })
     );
   }, [editorPosSize]);
 
@@ -95,10 +94,6 @@ export const useSelectEditor = (props: {
         left,
         width,
         height,
-      });
-      setEditorCanvasSize({
-        width: width * scaleFactor,
-        height: height * scaleFactor,
       });
     });
 

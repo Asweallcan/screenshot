@@ -2,14 +2,21 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  transform: translate(0, 100%);
+  transform: translate(0, 100% + 12px);
   display: flex;
   align-items: center;
   background-color: #eee;
   justify-content: flex-end;
+  border-radius: 12px;
+  padding: 12px;
 }
 
 .editor-toolbar-item {
   width: auto;
   cursor: unset;
+  font-size: 12px;
+
+  &.active {
+    color: #f00;
+  }
 }
