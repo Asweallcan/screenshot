@@ -57,23 +57,32 @@ export const useMoveEditor = (props: {
     document.body.addEventListener("mousemove", (e) => {
       if (!interactiveState.current.move) return;
 
-      const { scaleFactor } = window.screenInfo;
+      const {
+        width: screenWidth,
+        height: screenHeight,
+        scaleFactor,
+      } = window.screenInfo;
 
       const x = e.pageX - startPos.current.x,
         y = e.pageY - startPos.current.y;
 
+      const { top, left, width, height } = editorPosSize.current;
+
+      const xValid = left + x >= 0 && left + x + width <= screenWidth;
+      const yValid = top + y >= 0 && top + y + height <= screenHeight;
+
       setEditorOffset({
-        x,
-        y,
+        x: xValid ? x : editorOffset.current.x,
+        y: yValid ? y : editorOffset.current.y,
       });
 
       bgImage.current.offset({
-        x: (editorPosSize.current.left + x) * scaleFactor,
-        y: (editorPosSize.current.top + y) * scaleFactor,
+        x: (editorPosSize.current.left + editorOffset.current.x) * scaleFactor,
+        y: (editorPosSize.current.top + editorOffset.current.y) * scaleFactor,
       });
     });
 
-    const onDone = () => {
+    document.body.addEventListener("mouseup", () => {
       if (!interactiveState.current.move) return;
       interactiveState.current.move = false;
 
@@ -83,9 +92,6 @@ export const useMoveEditor = (props: {
         left: editorPosSize.current.left + editorOffset.current.x,
       });
       setEditorOffset({ x: 0, y: 0 });
-    };
-
-    document.body.addEventListener("mouseup", onDone);
-    document.body.addEventListener("mouseout", onDone);
+    });
   }, []);
 };

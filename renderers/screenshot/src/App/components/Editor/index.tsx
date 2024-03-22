@@ -86,6 +86,7 @@ export const Editor: React.FC<{
     stage,
     bgImage,
     startPos,
+    editorPosSize: editorPosSizeRef,
     interactiveState,
     setSizeInfo,
     setEditorPosSize,

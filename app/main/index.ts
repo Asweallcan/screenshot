@@ -8,9 +8,3 @@ app.whenReady().then(() => {
 
   createWindow();
 });
-
-app.on("window-all-closed", () => {});
-
-app.on("activate", () => {
-  BrowserWindow.getAllWindows().forEach((w) => w.show());
-});

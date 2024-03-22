@@ -8,6 +8,12 @@ export const useSelectEditor = (props: {
     x: number;
     y: number;
   }>;
+  editorPosSize: MutableRefObject<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }>;
   interactiveState: MutableRefObject<{
     move: boolean;
     select: boolean;
@@ -26,6 +32,7 @@ export const useSelectEditor = (props: {
     stage,
     bgImage,
     startPos,
+    editorPosSize,
     interactiveState,
     setSizeInfo,
     setEditorPosSize,
@@ -51,13 +58,24 @@ export const useSelectEditor = (props: {
     document.body.addEventListener("mousemove", (e) => {
       if (!interactiveState.current.select) return;
 
+      const { width: screenWidth, height: screenHeight } = window.screenInfo;
       const { x, y } = startPos.current;
       const { pageX, pageY } = e;
 
-      const left = Math.min(x, pageX);
-      const top = Math.min(y, pageY);
-      const width = Math.abs(x - pageX);
-      const height = Math.abs(y - pageY);
+      const nextLeft = Math.min(x, pageX);
+      const nextTop = Math.min(y, pageY);
+      const nextWidth = Math.abs(x - pageX);
+      const nextHeight = Math.abs(y - pageY);
+
+      const leftValid = nextLeft >= 0;
+      const widthValid = nextLeft + nextWidth <= screenWidth;
+      const topValid = nextTop >= 0;
+      const heightValid = nextTop + nextHeight <= screenHeight;
+
+      const left = leftValid ? nextLeft : editorPosSize.current.left;
+      const top = topValid ? nextTop : editorPosSize.current.top;
+      const width = widthValid ? nextWidth : editorPosSize.current.width;
+      const height = heightValid ? nextHeight : editorPosSize.current.height;
 
       setSizeInfo(`${width}x${height}`);
       setEditorPosSize({
@@ -81,13 +99,11 @@ export const useSelectEditor = (props: {
       });
     });
 
-    const onDone = () => {
+    document.body.addEventListener("mouseup", () => {
       if (!interactiveState.current.select) return;
 
       interactiveState.current.select = false;
       interactiveState.current.forbidSelect = true;
-    };
-    document.body.addEventListener("mouseup", onDone);
-    document.body.addEventListener("mouseout", onDone);
+    });
   }, []);
 };

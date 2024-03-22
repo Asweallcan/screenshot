@@ -16,10 +16,4 @@ export const createWindow = () => {
   mainWindow.current.loadFile(
     path.resolve(__dirname, "../../renderers/index/index.html")
   );
-
-  mainWindow.current.on("close", (e) => {
-    e.preventDefault();
-
-    mainWindow.current.hide();
-  });
 };
