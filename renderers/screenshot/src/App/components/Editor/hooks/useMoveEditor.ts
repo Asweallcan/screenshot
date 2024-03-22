@@ -1,9 +1,7 @@
-import Konva from "konva";
 import { MutableRefObject, useEffect, RefObject } from "react";
 
 export const useMoveEditor = (props: {
   editor: RefObject<HTMLDivElement>;
-  bgImage: RefObject<Konva.Image>;
   startPos: MutableRefObject<{
     x: number;
     y: number;
@@ -31,7 +29,6 @@ export const useMoveEditor = (props: {
 }) => {
   const {
     editor,
-    bgImage,
     startPos,
     editorOffset,
     editorPosSize,
@@ -57,11 +54,7 @@ export const useMoveEditor = (props: {
     document.body.addEventListener("mousemove", (e) => {
       if (!interactiveState.current.move) return;
 
-      const {
-        width: screenWidth,
-        height: screenHeight,
-        scaleFactor,
-      } = window.screenInfo;
+      const { width: screenWidth, height: screenHeight } = window.screenInfo;
 
       const x = e.pageX - startPos.current.x,
         y = e.pageY - startPos.current.y;
@@ -74,11 +67,6 @@ export const useMoveEditor = (props: {
       setEditorOffset({
         x: xValid ? x : editorOffset.current.x,
         y: yValid ? y : editorOffset.current.y,
-      });
-
-      bgImage.current.offset({
-        x: (editorPosSize.current.left + editorOffset.current.x) * scaleFactor,
-        y: (editorPosSize.current.top + editorOffset.current.y) * scaleFactor,
       });
     });
 

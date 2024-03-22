@@ -2,8 +2,6 @@ import Konva from "konva";
 import { RefObject, MutableRefObject, useEffect } from "react";
 
 export const useSelectEditor = (props: {
-  stage: RefObject<Konva.Stage>;
-  bgImage: RefObject<Konva.Image>;
   startPos: MutableRefObject<{
     x: number;
     y: number;
@@ -29,8 +27,6 @@ export const useSelectEditor = (props: {
   }): void;
 }) => {
   const {
-    stage,
-    bgImage,
     startPos,
     editorPosSize,
     interactiveState,
@@ -83,19 +79,6 @@ export const useSelectEditor = (props: {
         left,
         width,
         height,
-      });
-
-      if (!width || !height) return;
-
-      const { scaleFactor } = window.screenInfo;
-
-      stage.current.setSize({
-        width,
-        height,
-      });
-      bgImage.current.offset({
-        x: left * scaleFactor,
-        y: top * scaleFactor,
       });
     });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, RefObject, useState, useMemo } from "react";
-import Konva from "konva";
+import { Stage, Layer, Image } from "react-konva";
 
 import { useSelectEditor } from "./hooks/useSelectEditor";
 import { useMoveEditor } from "./hooks/useMoveEditor";
@@ -12,6 +12,8 @@ export const Editor: React.FC<{
   bgCanvas: RefObject<HTMLCanvasElement>;
   onStartSelect(): void;
 }> = (props) => {
+  const { scaleFactor } = window.screenInfo;
+
   const { bgCanvas, onStartSelect } = props;
 
   const interactiveState = useRef({
@@ -24,11 +26,7 @@ export const Editor: React.FC<{
   });
 
   const editor = useRef<HTMLDivElement>(null);
-  const stage = useRef<Konva.Stage>();
-  const bgLayer = useRef(new Konva.Layer());
-  const bgImage = useRef<Konva.Image>();
-  const drawLayer = useRef(new Konva.Layer());
-
+  const startPos = useRef({ x: 0, y: 0 });
   const [sizeInfo, setSizeInfo] = useState("");
   const [editorPosSize, editorPosSizeRef, setEditorPosSize] = useRefState({
     top: 0,
@@ -51,29 +49,10 @@ export const Editor: React.FC<{
     };
   }, [editorPosSize, editorOffset]);
 
-  const startPos = useRef({ x: 0, y: 0 });
-
   useEffect(() => {
     window.bridge.registerHandler("disableScreenshot", () => {
       interactiveState.current.forbidSelect = true;
     });
-  }, []);
-
-  useEffect(() => {
-    const { scaleFactor } = window.screenInfo;
-    stage.current = new Konva.Stage({
-      container: "editor-canvas",
-    });
-    bgImage.current = new Konva.Image({
-      image: bgCanvas.current,
-      scale: {
-        x: 1 / scaleFactor,
-        y: 1 / scaleFactor,
-      },
-    });
-    bgLayer.current.add(bgImage.current);
-    stage.current.add(bgLayer.current);
-    stage.current.add(drawLayer.current);
   }, []);
 
   useEffect(() => {
@@ -83,8 +62,6 @@ export const Editor: React.FC<{
   }, [editorPosSize.width]);
 
   useSelectEditor({
-    stage,
-    bgImage,
     startPos,
     editorPosSize: editorPosSizeRef,
     interactiveState,
@@ -94,7 +71,6 @@ export const Editor: React.FC<{
 
   useMoveEditor({
     editor,
-    bgImage,
     startPos,
     editorOffset: editorOffsetRef,
     editorPosSize: editorPosSizeRef,
@@ -106,11 +82,19 @@ export const Editor: React.FC<{
   return (
     <div ref={editor} style={editorStyle} className="editor">
       <div className="editor-size">{sizeInfo}</div>
-      <div id="editor-canvas" />
+      <Stage width={editorPosSize.width} height={editorPosSize.height}>
+        <Layer>
+          <Image
+            image={bgCanvas.current}
+            scaleX={1 / scaleFactor}
+            scaleY={1 / scaleFactor}
+            offsetY={(editorPosSize.top + editorOffset.y) * scaleFactor}
+            offsetX={(editorPosSize.left + editorOffset.x) * scaleFactor}
+          />
+        </Layer>
+      </Stage>
       <Toolbar
-        stage={stage}
         editor={editor}
-        drawLayer={drawLayer}
         editorPosSize={editorPosSizeRef}
         interactiveState={interactiveState}
       />
