@@ -1,4 +1,9 @@
-import React, { useRef, MutableRefObject, RefObject } from "react";
+import React, {
+  useRef,
+  MutableRefObject,
+  RefObject,
+  CSSProperties,
+} from "react";
 import Konva from "konva";
 
 import { DrawNode, DrawShape, DrawTool } from "../../types";
@@ -27,6 +32,7 @@ const TOOLS: (DrawTool & { label: string })[] = [
 ];
 
 export const Toolbar: React.FC<{
+  style: CSSProperties;
   stage: RefObject<Konva.Stage>;
   editor: RefObject<HTMLDivElement>;
   drewNodes: MutableRefObject<Array<DrawNode>>;
@@ -38,6 +44,7 @@ export const Toolbar: React.FC<{
   setDrewNodes(Nodes: Array<DrawNode>): void;
 }> = (props) => {
   const {
+    style,
     stage,
     editor,
     drewNodes,
@@ -89,7 +96,7 @@ export const Toolbar: React.FC<{
   });
 
   return (
-    <div className="editor-toolbar">
+    <div style={style} className="editor-toolbar">
       {TOOLS.map((tool) => {
         return (
           <div

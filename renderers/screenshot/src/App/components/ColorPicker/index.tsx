@@ -2,20 +2,15 @@ import React, { RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 import "./style.less";
 
-function rgbaToHex(r: number, g: number, b: number, a: number) {
-  let alpha = Math.round(a * 255).toString(16);
-  if (alpha.length < 2) {
-    alpha += alpha;
-  }
-  return (
-    "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1) + alpha
-  );
+function rgbToHex(r: number, g: number, b: number) {
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 export const ColorPicker: React.FC<{
   bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
 }> = (props) => {
   const { bgCanvasCtx } = props;
+  const { width: screenWidth, height: screenHeight } = window.screenInfo;
 
   const zoomArea = useRef<HTMLCanvasElement>(null);
   const zoomAreaCtx = useRef<CanvasRenderingContext2D>(null);
@@ -53,14 +48,14 @@ export const ColorPicker: React.FC<{
 
   useEffect(() => {
     const { scaleFactor } = window.screenInfo;
-    const [r, g, b, a] = bgCanvasCtx.current.getImageData(
+    const [r, g, b] = bgCanvasCtx.current.getImageData(
       mousePos.x * scaleFactor,
       mousePos.y * scaleFactor,
       1,
       1
     ).data;
 
-    setColor(rgbaToHex(r, g, b, a));
+    setColor(rgbToHex(r, g, b));
 
     zoomAreaCtx.current.clearRect(0, 0, 100, 100);
     zoomAreaCtx.current.putImageData(
@@ -84,9 +79,14 @@ export const ColorPicker: React.FC<{
   }, [mousePos]);
 
   const style = useMemo(() => {
+    const translateX =
+      mousePos.x + 120 > screenWidth ? mousePos.x - 120 : mousePos.x + 20;
+    const translateY =
+      mousePos.y + 120 > screenHeight ? mousePos.y - 120 : mousePos.y + 20;
+
     return {
       display: show ? "block" : "none",
-      transform: `translate(${mousePos.x + 20}px, ${mousePos.y + 20}px)`,
+      transform: `translate(${translateX}px, ${translateY}px)`,
     };
   }, [show, mousePos]);
 

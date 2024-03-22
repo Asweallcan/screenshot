@@ -61,12 +61,22 @@ export const useMoveEditor = (props: {
 
       const { top, left, width, height } = editorPosSize.current;
 
-      const xValid = left + x >= 0 && left + x + width <= screenWidth;
-      const yValid = top + y >= 0 && top + y + height <= screenHeight;
+      const xValid =
+        left + x < 0
+          ? -left
+          : left + x + width > screenWidth
+          ? screenWidth - width - left
+          : x;
+      const yValid =
+        top + y < 0
+          ? -top
+          : top + y + height > screenHeight
+          ? screenHeight - height - top
+          : y;
 
       setEditorOffset({
-        x: xValid ? x : editorOffset.current.x,
-        y: yValid ? y : editorOffset.current.y,
+        x: xValid,
+        y: yValid,
       });
     });
 

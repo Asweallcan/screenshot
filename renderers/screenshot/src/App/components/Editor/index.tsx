@@ -14,7 +14,7 @@ export const Editor: React.FC<{
   bgCanvas: RefObject<HTMLCanvasElement>;
   onStartSelect(): void;
 }> = (props) => {
-  const { scaleFactor } = window.screenInfo;
+  const { height: screenHeight, scaleFactor } = window.screenInfo;
 
   const { bgCanvas, onStartSelect } = props;
 
@@ -55,6 +55,25 @@ export const Editor: React.FC<{
     };
   }, [editorPosSize, editorOffset]);
 
+  const editorSizeStyle = useMemo(() => {
+    return {
+      transform:
+        editorOffset.y + editorPosSize.top < 40
+          ? "translate(0, 0)"
+          : "translate(0, calc(-100% - 8px))",
+    };
+  }, [editorOffset.y, editorPosSize.top]);
+
+  const toolbarStyle = useMemo(() => {
+    return {
+      transform:
+        editorOffset.y + editorPosSize.height + editorPosSize.top <
+        screenHeight - 33
+          ? "translate(0, calc(100% + 8px))"
+          : "translate(0, 0)",
+    };
+  }, [editorOffset.y, editorPosSize.top, editorPosSize.height]);
+
   useEffect(() => {
     window.bridge.registerHandler("disableScreenshot", () => {
       interactiveState.current.forbidSelect = true;
@@ -87,7 +106,9 @@ export const Editor: React.FC<{
 
   return (
     <div ref={editor} style={editorStyle} className="editor">
-      <div className="editor-size">{sizeInfo}</div>
+      <div style={editorSizeStyle} className="editor-size">
+        {sizeInfo}
+      </div>
       <Stage
         ref={stage}
         width={editorPosSize.width}
@@ -110,6 +131,7 @@ export const Editor: React.FC<{
         </Layer>
       </Stage>
       <Toolbar
+        style={toolbarStyle}
         stage={stage}
         editor={editor}
         drewNodes={drewNodesRef}
