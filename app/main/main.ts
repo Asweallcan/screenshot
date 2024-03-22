@@ -2,10 +2,7 @@ import { BrowserWindow } from "electron";
 import path from "path";
 
 export const mainWindow = {
-  /**
-   * @type BrowserWindow
-   */
-  current: null,
+  current: null as BrowserWindow,
 };
 
 export const createWindow = () => {
@@ -19,4 +16,10 @@ export const createWindow = () => {
   mainWindow.current.loadFile(
     path.resolve(__dirname, "../../renderers/index/index.html")
   );
+
+  mainWindow.current.on("close", (e) => {
+    e.preventDefault();
+
+    mainWindow.current.hide();
+  });
 };
