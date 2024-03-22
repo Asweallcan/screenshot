@@ -1,19 +1,10 @@
-import React, {
-  useEffect,
-  useRef,
-  RefObject,
-  useState,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useEffect, useRef, RefObject, useState, useMemo } from "react";
 import Konva from "konva";
 
 import { useSelectEditor } from "./hooks/useSelectEditor";
 import { useMoveEditor } from "./hooks/useMoveEditor";
 import { useRefState } from "../../../hooks";
 import { Toolbar } from "./components/Toolbar";
-import { useDrawTool } from "./hooks/useDrawTool";
-import { DrawTool } from "./types";
 
 import "./style.less";
 
@@ -26,8 +17,10 @@ export const Editor: React.FC<{
   const interactiveState = useRef({
     move: false,
     select: false,
+    resize: false,
     forbidMove: false,
     forbidSelect: false,
+    forbidResize: false,
   });
 
   const editor = useRef<HTMLDivElement>(null);
@@ -36,9 +29,6 @@ export const Editor: React.FC<{
   const bgImage = useRef<Konva.Image>();
   const drawLayer = useRef(new Konva.Layer());
 
-  const [drawTool, drawToolRef, _setDrawTool] = useRefState<DrawTool | null>(
-    null
-  );
   const [sizeInfo, setSizeInfo] = useState("");
   const [editorPosSize, editorPosSizeRef, setEditorPosSize] = useRefState({
     top: 0,
@@ -54,13 +44,12 @@ export const Editor: React.FC<{
   const editorStyle = useMemo(() => {
     return {
       ...editorPosSize,
-      cursor: drawTool ? "unset" : "grab",
       transform:
         editorOffset.x || editorOffset.y
           ? `translate(${editorOffset.x}px, ${editorOffset.y}px)`
           : "unset",
     };
-  }, [drawTool, editorPosSize, editorOffset]);
+  }, [editorPosSize, editorOffset]);
 
   const startPos = useRef({ x: 0, y: 0 });
 
@@ -113,23 +102,17 @@ export const Editor: React.FC<{
     setEditorPosSize,
   });
 
-  useDrawTool({
-    editor,
-    drawTool: drawToolRef,
-    drawLayer,
-    editorPosSize: editorPosSizeRef,
-  });
-
-  const setDrawTool = useCallback((drawTool: DrawTool) => {
-    interactiveState.current.forbidMove = true;
-    _setDrawTool(drawTool);
-  }, []);
-
   return (
     <div ref={editor} style={editorStyle} className="editor">
       <div className="editor-size">{sizeInfo}</div>
       <div id="editor-canvas" />
-      <Toolbar stage={stage} drawTool={drawTool} setDrawTool={setDrawTool} />
+      <Toolbar
+        stage={stage}
+        editor={editor}
+        drawLayer={drawLayer}
+        editorPosSize={editorPosSizeRef}
+        interactiveState={interactiveState}
+      />
     </div>
   );
 };

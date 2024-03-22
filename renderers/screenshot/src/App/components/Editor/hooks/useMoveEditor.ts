@@ -73,7 +73,7 @@ export const useMoveEditor = (props: {
       });
     });
 
-    document.body.addEventListener("mouseup", () => {
+    const onDone = () => {
       if (!interactiveState.current.move) return;
       interactiveState.current.move = false;
 
@@ -83,6 +83,9 @@ export const useMoveEditor = (props: {
         left: editorPosSize.current.left + editorOffset.current.x,
       });
       setEditorOffset({ x: 0, y: 0 });
-    });
+    };
+
+    document.body.addEventListener("mouseup", onDone);
+    document.body.addEventListener("mouseout", onDone);
   }, []);
 };

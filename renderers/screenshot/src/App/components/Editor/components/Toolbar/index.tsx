@@ -1,16 +1,48 @@
-import React, { RefObject } from "react";
+import React, { useRef, MutableRefObject, RefObject } from "react";
 import Konva from "konva";
 
-import { DrawTool } from "../../types";
+import { DrawTool, DrawTools } from "../../types";
+import { useRefState } from "../../../../../hooks";
+import { useDrawTool } from "./hooks/useDrawTool";
 
 import "./style.less";
 
+const TOOLS: (DrawTool & { label: string })[] = [
+  {
+    name: "rect",
+    label: "矩形",
+    options: {
+      color: "#F00",
+      strokeWidth: 2,
+    },
+  },
+  {
+    name: "circle",
+    label: "圆圈",
+    options: {
+      color: "#F00",
+      strokeWidth: 2,
+    },
+  },
+];
+
 export const Toolbar: React.FC<{
   stage: RefObject<Konva.Stage>;
-  drawTool: DrawTool;
-  setDrawTool(drawTool: DrawTool): void;
+  editor: RefObject<HTMLDivElement>;
+  drawLayer: RefObject<Konva.Layer>;
+  editorPosSize: RefObject<{ top: number; left: number }>;
+  interactiveState: MutableRefObject<{
+    forbidMove: boolean;
+    forbidResize: boolean;
+  }>;
 }> = (props) => {
-  const { stage, drawTool, setDrawTool } = props;
+  const { stage, editor, drawLayer, editorPosSize, interactiveState } = props;
+
+  const operations = useRef<Array<Konva.Shape>>([]);
+  const addedKeydown = useRef(false);
+  const [drawTool, drawToolRef, setDrawTool] = useRefState<DrawTool | null>(
+    null
+  );
 
   const onSave = () => {
     stage.current.toBlob({
@@ -23,44 +55,47 @@ export const Toolbar: React.FC<{
     });
   };
 
-  const onUseRect = () => {
+  const onUseTool = (name: keyof DrawTools) => {
+    interactiveState.current.forbidMove = true;
+    interactiveState.current.forbidResize = true;
     setDrawTool({
-      name: "rect",
-      options: {
-        color: "#f00",
-        strokeWidth: 2,
-      },
+      name,
+      options: TOOLS.find((t) => t.name === name).options,
     });
+    if (!addedKeydown.current) {
+      addedKeydown.current = true;
+      window.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+          const lastItem = operations.current.pop();
+          lastItem?.destroy();
+        }
+      });
+    }
   };
 
-  const onUseCircle = () => {
-    setDrawTool({
-      name: "circle",
-      options: {
-        color: "#f00",
-        strokeWidth: 2,
-      },
-    });
-  };
+  useDrawTool({
+    editor,
+    drawTool: drawToolRef,
+    drawLayer,
+    operations,
+    editorPosSize,
+  });
 
   return (
     <div className="editor-toolbar">
-      <div
-        className={`editor-toolbar-item ${
-          drawTool?.name === "circle" ? "active" : ""
-        }`}
-        onClick={onUseCircle}
-      >
-        圆圈
-      </div>
-      <div
-        className={`editor-toolbar-item ${
-          drawTool?.name === "rect" ? "active" : ""
-        }`}
-        onClick={onUseRect}
-      >
-        矩形
-      </div>
+      {TOOLS.map((tool) => {
+        return (
+          <div
+            key={tool.name}
+            className={`editor-toolbar-item ${
+              drawTool?.name === tool.name ? "active" : ""
+            }`}
+            onClick={() => onUseTool(tool.name)}
+          >
+            {tool.label}
+          </div>
+        );
+      })}
       <div className="editor-toolbar-item" onClick={onSave}>
         保存
       </div>

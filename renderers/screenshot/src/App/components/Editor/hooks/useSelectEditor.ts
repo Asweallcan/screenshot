@@ -81,11 +81,13 @@ export const useSelectEditor = (props: {
       });
     });
 
-    document.body.addEventListener("mouseup", () => {
+    const onDone = () => {
       if (!interactiveState.current.select) return;
 
       interactiveState.current.select = false;
       interactiveState.current.forbidSelect = true;
-    });
+    };
+    document.body.addEventListener("mouseup", onDone);
+    document.body.addEventListener("mouseout", onDone);
   }, []);
 };

@@ -2,15 +2,26 @@ const path = require("path");
 const webpack = require("webpack");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 
+const RENDERERS = [
+  {
+    name: "index",
+    dir: path.resolve(__dirname, "./index"),
+  },
+  {
+    name: "screenshot",
+    dir: path.resolve(__dirname, "./screenshot"),
+  },
+];
+
 /**
  * @type webpack.Configuration
  */
 const config = {
   mode: process.env.NODE_ENV,
-  entry: {
-    index: path.resolve(__dirname, "./index/src/index.tsx"),
-    screenshot: path.resolve(__dirname, "./screenshot/src/index.tsx"),
-  },
+  entry: RENDERERS.reduce((acc, cur) => {
+    acc[cur.name] = cur.dir + "/src/index.tsx";
+    return acc;
+  }, {}),
   output: {
     path: path.resolve(__dirname, "../dist/renderers"),
     clean: true,
@@ -21,26 +32,16 @@ const config = {
   },
   module: {
     rules: [
-      {
+      ...RENDERERS.map((render) => ({
         test: /\.[tj]sx?$/,
         use: {
           loader: "ts-loader",
           options: {
-            configFile: path.resolve(__dirname, "./screenshot/tsconfig.json"),
+            configFile: render.dir + "/tsconfig.json",
           },
         },
-        include: path.resolve(__dirname, "./screenshot"),
-      },
-      {
-        test: /\.[tj]sx?$/,
-        use: {
-          loader: "ts-loader",
-          options: {
-            configFile: path.resolve(__dirname, "./index/tsconfig.json"),
-          },
-        },
-        include: path.resolve(__dirname, "./index"),
-      },
+        include: render.dir,
+      })),
       {
         test: /\.less$/,
         use: ["style-loader", "css-loader", "less-loader"],
@@ -48,22 +49,20 @@ const config = {
     ],
   },
   plugins: [
-    new HTMLWebpackPlugin({
-      template: path.resolve(__dirname, "./index.html"),
-      filename: "screenshot/index.html",
-      chunks: ["screenshot"],
-    }),
-    new HTMLWebpackPlugin({
-      template: path.resolve(__dirname, "./index.html"),
-      filename: "index/index.html",
-      chunks: ["index"],
-    }),
+    ...RENDERERS.map(
+      (render) =>
+        new HTMLWebpackPlugin({
+          template: path.resolve(__dirname, "./index.html"),
+          filename: render.name + "/index.html",
+          chunks: [render.name],
+        })
+    ),
   ],
   optimization: {
     splitChunks: {
       cacheGroups: {
         vendor: {
-          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+          test: /[\\/]node_modules[\\/](react|react-dom|konva)[\\/]/,
           name: "vendors", // 拆分后的包名
           chunks: "all",
         },

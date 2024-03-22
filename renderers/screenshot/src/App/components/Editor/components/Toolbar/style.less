@@ -7,16 +7,22 @@
   align-items: center;
   background-color: #eee;
   justify-content: flex-end;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .editor-toolbar-item {
   width: auto;
-  cursor: unset;
   font-size: 12px;
+  cursor: pointer;
+  padding: 8px;
+
+  &:last-child {
+    margin-right: 0;
+  }
 
   &.active {
-    color: #f00;
+    color: #3370ff;
+    background-color: #ccc;
   }
 }
