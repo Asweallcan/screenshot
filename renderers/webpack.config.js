@@ -1,6 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const RENDERERS = [
   {
@@ -44,7 +45,7 @@ const config = {
       })),
       {
         test: /\.less$/,
-        use: ["style-loader", "css-loader", "less-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader", "less-loader"],
       },
     ],
   },
@@ -57,18 +58,22 @@ const config = {
           chunks: [render.name],
         })
     ),
+    new MiniCssExtractPlugin({
+      filename: "[name]/[name].css",
+      chunkFilename: "[id].css",
+    }),
   ],
   optimization: {
     splitChunks: {
       cacheGroups: {
         react: {
-          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+          test: /[\\/]node_modules[\\/](react|react-dom|scheduler|react-reconciler)[\\/]/,
           name: "react",
           chunks: "all",
         },
         konva: {
           test: /[\\/]node_modules[\\/](konva|react-konva)[\\/]/,
-          name: "vendors",
+          name: "konva",
           chunks: (chunk) => {
             return chunk.name === "screenshot";
           },
