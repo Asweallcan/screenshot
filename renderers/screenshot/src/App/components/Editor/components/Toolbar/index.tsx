@@ -1,7 +1,7 @@
 import React, { useRef, MutableRefObject, RefObject } from "react";
 import Konva from "konva";
 
-import { DrawTool, DrawTools } from "../../types";
+import { DrawNode, DrawShape, DrawTool } from "../../types";
 import { useRefState } from "../../../../../hooks";
 import { useDrawTool } from "./hooks/useDrawTool";
 
@@ -29,16 +29,23 @@ const TOOLS: (DrawTool & { label: string })[] = [
 export const Toolbar: React.FC<{
   stage: RefObject<Konva.Stage>;
   editor: RefObject<HTMLDivElement>;
-  drawLayer: RefObject<Konva.Layer>;
+  drewNodes: MutableRefObject<Array<DrawNode>>;
   editorPosSize: RefObject<{ top: number; left: number }>;
   interactiveState: MutableRefObject<{
     forbidMove: boolean;
     forbidResize: boolean;
   }>;
+  setDrewNodes(Nodes: Array<DrawNode>): void;
 }> = (props) => {
-  const { stage, editor, drawLayer, editorPosSize, interactiveState } = props;
+  const {
+    stage,
+    editor,
+    drewNodes,
+    editorPosSize,
+    interactiveState,
+    setDrewNodes,
+  } = props;
 
-  const operations = useRef<Array<Konva.Shape>>([]);
   const addedKeydown = useRef(false);
   const [drawTool, drawToolRef, setDrawTool] = useRefState<DrawTool | null>(
     null
@@ -55,7 +62,7 @@ export const Toolbar: React.FC<{
     });
   };
 
-  const onUseTool = (name: keyof DrawTools) => {
+  const onUseTool = (name: DrawShape) => {
     interactiveState.current.forbidMove = true;
     interactiveState.current.forbidResize = true;
     setDrawTool({
@@ -66,8 +73,8 @@ export const Toolbar: React.FC<{
       addedKeydown.current = true;
       window.addEventListener("keydown", (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === "z") {
-          const lastItem = operations.current.pop();
-          lastItem?.destroy();
+          drewNodes.current.pop();
+          setDrewNodes(drewNodes.current.concat());
         }
       });
     }
@@ -76,9 +83,9 @@ export const Toolbar: React.FC<{
   useDrawTool({
     editor,
     drawTool: drawToolRef,
-    drawLayer,
-    operations,
+    drewNodes,
     editorPosSize,
+    setDrewNodes,
   });
 
   return (

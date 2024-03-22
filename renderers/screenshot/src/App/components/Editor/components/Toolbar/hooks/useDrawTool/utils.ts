@@ -1,22 +1,23 @@
 import Konva from "konva";
+import { Rect, Ellipse } from "react-konva";
 
-import { DrawTool, DrawTools } from "../../../../types";
+import { DrawNode, DrawTool } from "../../../../types";
 
-export const getDrawItem = <T extends DrawTool>(
+export const getDrawNode = <T extends DrawTool>(
   drawTool: T
-): DrawTools[T["name"]]["item"] => {
+): DrawNode<T["name"]> => {
   switch (drawTool.name) {
     case "rect":
-      return new Konva.Rect();
+      return { Node: Rect, props: {} };
     case "circle":
-      return new Konva.Ellipse();
+      return { Node: Ellipse, props: {} };
   }
 };
 
-export const drawRect = <T extends DrawTool>(
+export const drawRect = <T extends DrawTool = DrawTool<"rect">>(
   drawTool: T,
   positions: { x0: number; y0: number; x1: number; y1: number },
-  drawingItem: DrawTools[T["name"]]["item"]
+  setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
 ) => {
   const { x0, x1, y0, y1 } = positions;
 
@@ -29,22 +30,24 @@ export const drawRect = <T extends DrawTool>(
   const width = Math.abs(x0 - x1);
   const height = Math.abs(y0 - y1);
 
-  drawingItem.setPosition({
-    x: left,
-    y: top,
+  setDrawingNodeProps({
+    position: {
+      x: left,
+      y: top,
+    },
+    size: {
+      width,
+      height,
+    },
+    stroke: color,
+    strokeWidth,
   });
-  drawingItem.setSize({
-    width,
-    height,
-  });
-  drawingItem.stroke(color);
-  drawingItem.strokeWidth(strokeWidth);
 };
 
-export const drawCircle = <T extends DrawTool>(
+export const drawCircle = <T extends DrawTool = DrawTool<"circle">>(
   drawTool: T,
   positions: { x0: number; y0: number; x1: number; y1: number },
-  drawingItem: DrawTools[T["name"]]["item"]
+  setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
 ) => {
   const { x0, x1, y0, y1 } = positions;
 
@@ -57,15 +60,14 @@ export const drawCircle = <T extends DrawTool>(
   const width = Math.abs(x0 - x1);
   const height = Math.abs(y0 - y1);
 
-  drawingItem.setPosition({
-    x: left + width / 2,
-    y: top + height / 2,
+  setDrawingNodeProps({
+    position: {
+      x: left + width / 2,
+      y: top + height / 2,
+    },
+    radiusX: width / 2,
+    radiusY: height / 2,
+    stroke: color,
+    strokeWidth,
   });
-  (drawingItem as Konva.Ellipse).radius({
-    x: width / 2,
-    y: height / 2,
-  });
-  drawingItem.stroke(color);
-  drawingItem.strokeWidth(strokeWidth);
-  drawingItem.strokeWidth(strokeWidth);
 };

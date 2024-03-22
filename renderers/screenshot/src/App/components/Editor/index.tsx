@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, RefObject, useState, useMemo } from "react";
 import { Stage, Layer, Image } from "react-konva";
+import Konva from "konva";
 
-import { useSelectEditor } from "./hooks/useSelectEditor";
-import { useMoveEditor } from "./hooks/useMoveEditor";
+import { DrawNode } from "./types";
 import { useRefState } from "../../../hooks";
 import { Toolbar } from "./components/Toolbar";
+import { useMoveEditor } from "./hooks/useMoveEditor";
+import { useSelectEditor } from "./hooks/useSelectEditor";
 
 import "./style.less";
 
@@ -25,6 +27,7 @@ export const Editor: React.FC<{
     forbidResize: false,
   });
 
+  const stage = useRef<Konva.Stage>();
   const editor = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
   const [sizeInfo, setSizeInfo] = useState("");
@@ -38,6 +41,9 @@ export const Editor: React.FC<{
     x: 0,
     y: 0,
   });
+  const [drewNodes, drewNodesRef, setDrewNodes] = useRefState<Array<DrawNode>>(
+    []
+  );
 
   const editorStyle = useMemo(() => {
     return {
@@ -82,7 +88,11 @@ export const Editor: React.FC<{
   return (
     <div ref={editor} style={editorStyle} className="editor">
       <div className="editor-size">{sizeInfo}</div>
-      <Stage width={editorPosSize.width} height={editorPosSize.height}>
+      <Stage
+        ref={stage}
+        width={editorPosSize.width}
+        height={editorPosSize.height}
+      >
         <Layer>
           <Image
             image={bgCanvas.current}
@@ -92,11 +102,20 @@ export const Editor: React.FC<{
             offsetX={(editorPosSize.left + editorOffset.x) * scaleFactor}
           />
         </Layer>
+        <Layer>
+          {drewNodes.map(({ Node, props }, index) => (
+            // @ts-ignore
+            <Node {...props} key={index} />
+          ))}
+        </Layer>
       </Stage>
       <Toolbar
+        stage={stage}
         editor={editor}
+        drewNodes={drewNodesRef}
         editorPosSize={editorPosSizeRef}
         interactiveState={interactiveState}
+        setDrewNodes={setDrewNodes}
       />
     </div>
   );

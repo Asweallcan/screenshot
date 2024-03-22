@@ -61,10 +61,17 @@ const config = {
   optimization: {
     splitChunks: {
       cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/](react|react-dom|konva)[\\/]/,
-          name: "vendors", // 拆分后的包名
+        react: {
+          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+          name: "react",
           chunks: "all",
+        },
+        konva: {
+          test: /[\\/]node_modules[\\/](konva|react-konva)[\\/]/,
+          name: "vendors",
+          chunks: (chunk) => {
+            return chunk.name === "screenshot";
+          },
         },
       },
     },

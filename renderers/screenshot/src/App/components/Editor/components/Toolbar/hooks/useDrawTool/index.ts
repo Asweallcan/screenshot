@@ -1,36 +1,48 @@
-import { MutableRefObject, RefObject, useEffect, useRef } from "react";
-import Konva from "konva";
+import {
+  MutableRefObject,
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 
-import { DrawTool, DrawTools } from "../../../../types";
-import { getDrawItem, drawCircle, drawRect } from "./utils";
+import { DrawNode, DrawTool } from "../../../../types";
+import { getDrawNode, drawCircle, drawRect } from "./utils";
 
 const draw = <T extends DrawTool>(
   drawTool: T,
   positions: { x0: number; y0: number; x1: number; y1: number },
-  drawingItem: DrawTools[T["name"]]["item"]
+  setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
 ) => {
   if (drawTool.name === "rect") {
-    drawRect(drawTool, positions, drawingItem);
+    drawRect(drawTool, positions, setDrawingNodeProps);
   } else if (drawTool.name === "circle") {
-    drawCircle(drawTool, positions, drawingItem);
+    drawCircle(drawTool, positions, setDrawingNodeProps);
   }
 };
 
 export const useDrawTool = <T extends DrawTool>(props: {
   editor: RefObject<HTMLDivElement>;
   drawTool: RefObject<T>;
-  drawLayer: RefObject<Konva.Layer>;
-  operations: MutableRefObject<Konva.Shape[]>;
+  drewNodes: MutableRefObject<Array<DrawNode>>;
   editorPosSize: RefObject<{
     left: number;
     top: number;
   }>;
+  setDrewNodes(Nodes: Array<DrawNode>): void;
 }) => {
-  const { editor, drawTool, drawLayer, operations, editorPosSize } = props;
+  const { editor, drawTool, drewNodes, editorPosSize, setDrewNodes } = props;
 
   const drawing = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
-  const drawingItem = useRef<DrawTools[T["name"]]["item"]>();
+
+  const setDrawingNodeProps = useCallback(
+    (props: DrawNode<T["name"]>["props"]) => {
+      drewNodes.current[drewNodes.current.length - 1].props = props;
+      setDrewNodes(drewNodes.current.concat());
+    },
+    []
+  );
 
   useEffect(() => {
     editor.current.addEventListener("mousedown", (e) => {
@@ -40,8 +52,7 @@ export const useDrawTool = <T extends DrawTool>(props: {
       startPos.current.x = e.pageX;
       startPos.current.y = e.pageY;
 
-      drawingItem.current = getDrawItem(drawTool.current);
-      drawLayer.current.add(drawingItem.current);
+      setDrewNodes(drewNodes.current.concat(getDrawNode(drawTool.current)));
     });
 
     editor.current.addEventListener("mousemove", (e) => {
@@ -59,16 +70,13 @@ export const useDrawTool = <T extends DrawTool>(props: {
           x1: pageX - left,
           y1: pageY - top,
         },
-        drawingItem.current
+        setDrawingNodeProps
       );
     });
 
     const onDone = () => {
       if (!drawing.current) return;
       drawing.current = false;
-
-      operations.current.push(drawingItem.current);
-      drawingItem.current = null;
     };
 
     editor.current.addEventListener("mouseup", onDone);
