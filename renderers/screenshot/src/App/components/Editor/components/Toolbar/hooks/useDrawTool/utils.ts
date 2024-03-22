@@ -1,5 +1,5 @@
+import { Rect, Ellipse, Image as KonvaImage, Group } from "react-konva";
 import Konva from "konva";
-import { Rect, Ellipse } from "react-konva";
 
 import { DrawNode, DrawTool } from "../../../../types";
 
@@ -11,13 +11,15 @@ export const getDrawNode = <T extends DrawTool>(
       return { Node: Rect, props: {} };
     case "circle":
       return { Node: Ellipse, props: {} };
+    case "mosaic":
+      return { Node: Group, props: { children: [] } };
   }
 };
 
-export const drawRect = <T extends DrawTool = DrawTool<"rect">>(
-  drawTool: T,
+export const drawRect = (
+  drawTool: DrawTool<"rect">,
   positions: { x0: number; y0: number; x1: number; y1: number },
-  setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
+  setDrawingNodeProps: (props: DrawNode<"rect">["props"]) => void
 ) => {
   const { x0, x1, y0, y1 } = positions;
 
@@ -44,10 +46,10 @@ export const drawRect = <T extends DrawTool = DrawTool<"rect">>(
   });
 };
 
-export const drawCircle = <T extends DrawTool = DrawTool<"circle">>(
-  drawTool: T,
+export const drawCircle = (
+  drawTool: DrawTool<"circle">,
   positions: { x0: number; y0: number; x1: number; y1: number },
-  setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
+  setDrawingNodeProps: (props: DrawNode<"circle">["props"]) => void
 ) => {
   const { x0, x1, y0, y1 } = positions;
 
@@ -69,5 +71,27 @@ export const drawCircle = <T extends DrawTool = DrawTool<"circle">>(
     radiusY: height / 2,
     stroke: color,
     strokeWidth,
+  });
+};
+
+export const drawMosaic = (
+  drawTool: DrawTool<"mosaic">,
+  positions: { x0: number; y0: number; x1: number; y1: number },
+  drawingNode: DrawNode<"mosaic">,
+  setDrawingNodeProps: (props: DrawNode<"mosaic">["props"]) => void
+) => {
+  const { x1, y1 } = positions;
+
+  const imageObj = new Image();
+  const konvaImage = KonvaImage({
+    image: imageObj,
+    filters: [Konva.Filters.Pixelate],
+    pixelSize: 10,
+    x: x1,
+    y: y1,
+  });
+
+  setDrawingNodeProps({
+    children: drawingNode.props.children.concat(konvaImage),
   });
 };

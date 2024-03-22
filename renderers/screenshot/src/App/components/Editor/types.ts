@@ -1,5 +1,6 @@
 import Konva from "konva";
-import { Rect, Ellipse } from "react-konva";
+import { ReactNode } from "react";
+import { Rect, Ellipse, Group } from "react-konva";
 
 interface DrawTools {
   rect: {
@@ -13,6 +14,12 @@ interface DrawTools {
     strokeWidth: number;
     Node: typeof Ellipse;
     props: Konva.EllipseConfig;
+  };
+  mosaic: {
+    Node: typeof Group;
+    props: {
+      children: Array<ReactNode>;
+    };
   };
 }
 

@@ -29,6 +29,11 @@ const TOOLS: (DrawTool & { label: string })[] = [
       strokeWidth: 2,
     },
   },
+  {
+    name: "mosaic",
+    label: "马赛克",
+    options: {},
+  },
 ];
 
 export const Toolbar: React.FC<{

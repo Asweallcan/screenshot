@@ -4,8 +4,7 @@
   "main": "main/index.js",
   "license": "MIT",
   "scripts": {
-    "start-compile": "bin/start-compile.sh",
-    "start-app": "bin/start-app.sh",
+    "dev": "bin/dev.sh",
     "build": "bin/build.sh"
   },
   "dependencies": {

@@ -61,7 +61,7 @@ export const screenshot = async () => {
     win.loadFile(
       path.resolve(__dirname, "../../renderers/screenshot/index.html")
     );
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
     executeJavaScript(win, "initScreenshot", {
       sourceId: source.id,
       width,

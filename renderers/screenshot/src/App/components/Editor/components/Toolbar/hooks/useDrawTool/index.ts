@@ -6,18 +6,26 @@ import {
   useRef,
 } from "react";
 
-import { DrawNode, DrawTool } from "../../../../types";
-import { getDrawNode, drawCircle, drawRect } from "./utils";
+import { DrawNode, DrawShape, DrawTool } from "../../../../types";
+import { getDrawNode, drawCircle, drawRect, drawMosaic } from "./utils";
 
 const draw = <T extends DrawTool>(
   drawTool: T,
   positions: { x0: number; y0: number; x1: number; y1: number },
+  drawingNode: DrawNode,
   setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
 ) => {
   if (drawTool.name === "rect") {
-    drawRect(drawTool, positions, setDrawingNodeProps);
+    drawRect(drawTool as DrawTool<"rect">, positions, setDrawingNodeProps);
   } else if (drawTool.name === "circle") {
-    drawCircle(drawTool, positions, setDrawingNodeProps);
+    drawCircle(drawTool as DrawTool<"circle">, positions, setDrawingNodeProps);
+  } else if (drawTool.name === "mosaic") {
+    drawMosaic(
+      drawTool as DrawTool<"mosaic">,
+      positions,
+      drawingNode as DrawNode<"mosaic">,
+      setDrawingNodeProps
+    );
   }
 };
 
@@ -70,6 +78,7 @@ export const useDrawTool = <T extends DrawTool>(props: {
           x1: pageX - left,
           y1: pageY - top,
         },
+        drewNodes.current[drewNodes.current.length - 1],
         setDrawingNodeProps
       );
     });
