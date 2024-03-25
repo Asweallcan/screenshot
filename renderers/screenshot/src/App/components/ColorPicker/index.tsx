@@ -1,4 +1,5 @@
 import React, { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { Stage, Layer, Image, Line } from "react-konva";
 
 import "./style.less";
 
@@ -7,21 +8,19 @@ function rgbToHex(r: number, g: number, b: number) {
 }
 
 export const ColorPicker: React.FC<{
+  bgCanvas: RefObject<HTMLCanvasElement>;
   bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
 }> = (props) => {
-  const { bgCanvasCtx } = props;
-  const { width: screenWidth, height: screenHeight } = window.screenInfo;
-
-  const zoomArea = useRef<HTMLCanvasElement>(null);
-  const zoomAreaCtx = useRef<CanvasRenderingContext2D>(null);
+  const { bgCanvas, bgCanvasCtx } = props;
+  const {
+    width: screenWidth,
+    height: screenHeight,
+    scaleFactor,
+  } = window.screenInfo;
 
   const [show, setShow] = useState(false);
   const [color, setColor] = useState("");
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    zoomAreaCtx.current = zoomArea.current.getContext("2d");
-  }, []);
 
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
@@ -56,26 +55,6 @@ export const ColorPicker: React.FC<{
     ).data;
 
     setColor(rgbToHex(r, g, b));
-
-    zoomAreaCtx.current.clearRect(0, 0, 100, 100);
-    zoomAreaCtx.current.putImageData(
-      bgCanvasCtx.current.getImageData(
-        mousePos.x * scaleFactor - 25 * scaleFactor,
-        mousePos.y * scaleFactor - 25 * scaleFactor,
-        50 * scaleFactor,
-        50 * scaleFactor
-      ),
-      0,
-      0
-    );
-
-    // 画十字准星
-    zoomAreaCtx.current.beginPath();
-    zoomAreaCtx.current.moveTo(50, 0);
-    zoomAreaCtx.current.lineTo(50, 100);
-    zoomAreaCtx.current.moveTo(0, 50);
-    zoomAreaCtx.current.lineTo(100, 50);
-    zoomAreaCtx.current.stroke();
   }, [mousePos]);
 
   const style = useMemo(() => {
@@ -92,7 +71,21 @@ export const ColorPicker: React.FC<{
 
   return (
     <div style={style} className="color-picker">
-      <canvas ref={zoomArea} className="zoom-area" width={100} height={100} />
+      <Stage width={100} height={100}>
+        <Layer>
+          <Image
+            image={bgCanvas.current}
+            scaleX={4}
+            scaleY={4}
+            offsetX={mousePos.x * scaleFactor - 50 / 4}
+            offsetY={mousePos.y * scaleFactor - 50 / 4}
+          />
+        </Layer>
+        <Layer>
+          <Line stroke="#888" points={[50, 0, 50, 100]} />
+          <Line stroke="#888" points={[0, 50, 100, 50]} />
+        </Layer>
+      </Stage>
       <div className="color">{color}</div>
     </div>
   );

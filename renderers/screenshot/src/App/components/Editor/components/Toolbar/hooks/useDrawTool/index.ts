@@ -1,45 +1,33 @@
 import {
-  MutableRefObject,
-  RefObject,
-  useCallback,
-  useEffect,
   useRef,
+  RefObject,
+  useEffect,
+  useCallback,
+  MutableRefObject,
 } from "react";
 
-import { DrawNode, DrawShape, DrawTool } from "../../../../types";
-import { getDrawNode, drawCircle, drawRect, drawMosaic } from "./utils";
-
-const draw = <T extends DrawTool>(
-  drawTool: T,
-  positions: { x0: number; y0: number; x1: number; y1: number },
-  drawingNode: DrawNode,
-  setDrawingNodeProps: (props: DrawNode<T["name"]>["props"]) => void
-) => {
-  if (drawTool.name === "rect") {
-    drawRect(drawTool as DrawTool<"rect">, positions, setDrawingNodeProps);
-  } else if (drawTool.name === "circle") {
-    drawCircle(drawTool as DrawTool<"circle">, positions, setDrawingNodeProps);
-  } else if (drawTool.name === "mosaic") {
-    drawMosaic(
-      drawTool as DrawTool<"mosaic">,
-      positions,
-      drawingNode as DrawNode<"mosaic">,
-      setDrawingNodeProps
-    );
-  }
-};
+import { DrawNode, DrawTool } from "../../../../types";
+import { draw, getDrawNode } from "./utils";
 
 export const useDrawTool = <T extends DrawTool>(props: {
-  editor: RefObject<HTMLDivElement>;
   drawTool: RefObject<T>;
   drewNodes: MutableRefObject<Array<DrawNode>>;
+  editorCanvas: RefObject<HTMLDivElement>;
   editorPosSize: RefObject<{
     left: number;
     top: number;
   }>;
+  bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
   setDrewNodes(Nodes: Array<DrawNode>): void;
 }) => {
-  const { editor, drawTool, drewNodes, editorPosSize, setDrewNodes } = props;
+  const {
+    drawTool,
+    drewNodes,
+    bgCanvasCtx,
+    editorCanvas,
+    editorPosSize,
+    setDrewNodes,
+  } = props;
 
   const drawing = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
@@ -53,7 +41,7 @@ export const useDrawTool = <T extends DrawTool>(props: {
   );
 
   useEffect(() => {
-    editor.current.addEventListener("mousedown", (e) => {
+    editorCanvas.current.addEventListener("mousedown", (e) => {
       if (drawing.current || !drawTool.current) return;
       drawing.current = true;
 
@@ -63,32 +51,34 @@ export const useDrawTool = <T extends DrawTool>(props: {
       setDrewNodes(drewNodes.current.concat(getDrawNode(drawTool.current)));
     });
 
-    editor.current.addEventListener("mousemove", (e) => {
+    editorCanvas.current.addEventListener("mousemove", (e) => {
       if (!drawing.current) return;
 
       const { pageX, pageY } = e;
 
       const { top, left } = editorPosSize.current;
 
-      draw(
-        drawTool.current,
-        {
+      draw({
+        drawTool: drawTool.current,
+        mousePos: {
+          x: pageX,
+          y: pageY,
+        },
+        positions: {
           x0: startPos.current.x - left,
           y0: startPos.current.y - top,
           x1: pageX - left,
           y1: pageY - top,
         },
-        drewNodes.current[drewNodes.current.length - 1],
-        setDrawingNodeProps
-      );
+        drawingNode: drewNodes.current[drewNodes.current.length - 1],
+        bgCanvasCtx,
+        setDrawingNodeProps,
+      });
     });
 
-    const onDone = () => {
+    editorCanvas.current.addEventListener("mouseup", () => {
       if (!drawing.current) return;
       drawing.current = false;
-    };
-
-    editor.current.addEventListener("mouseup", onDone);
-    editor.current.addEventListener("mouseout", onDone);
+    });
   }, []);
 };

@@ -82,8 +82,14 @@ export const App: React.FC = () => {
       {initialized ? (
         <>
           <div className="mask" />
-          <Editor bgCanvas={bgCanvas} onStartSelect={onStartSelect}></Editor>
-          {showColorPicker ? <ColorPicker bgCanvasCtx={bgCanvasCtx} /> : null}
+          <Editor
+            bgCanvas={bgCanvas}
+            bgCanvasCtx={bgCanvasCtx}
+            onStartSelect={onStartSelect}
+          ></Editor>
+          {showColorPicker ? (
+            <ColorPicker bgCanvas={bgCanvas} bgCanvasCtx={bgCanvasCtx} />
+          ) : null}
         </>
       ) : null}
     </>

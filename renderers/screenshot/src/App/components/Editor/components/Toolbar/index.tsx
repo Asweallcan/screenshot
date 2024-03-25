@@ -39,8 +39,9 @@ const TOOLS: (DrawTool & { label: string })[] = [
 export const Toolbar: React.FC<{
   style: CSSProperties;
   stage: RefObject<Konva.Stage>;
-  editor: RefObject<HTMLDivElement>;
   drewNodes: MutableRefObject<Array<DrawNode>>;
+  bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
+  editorCanvas: RefObject<HTMLDivElement>;
   editorPosSize: RefObject<{ top: number; left: number }>;
   interactiveState: MutableRefObject<{
     forbidMove: boolean;
@@ -51,8 +52,9 @@ export const Toolbar: React.FC<{
   const {
     style,
     stage,
-    editor,
     drewNodes,
+    bgCanvasCtx,
+    editorCanvas,
     editorPosSize,
     interactiveState,
     setDrewNodes,
@@ -93,9 +95,10 @@ export const Toolbar: React.FC<{
   };
 
   useDrawTool({
-    editor,
     drawTool: drawToolRef,
     drewNodes,
+    bgCanvasCtx,
+    editorCanvas,
     editorPosSize,
     setDrewNodes,
   });

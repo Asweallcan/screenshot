@@ -12,11 +12,12 @@ import "./style.less";
 
 export const Editor: React.FC<{
   bgCanvas: RefObject<HTMLCanvasElement>;
+  bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
   onStartSelect(): void;
 }> = (props) => {
   const { height: screenHeight, scaleFactor } = window.screenInfo;
 
-  const { bgCanvas, onStartSelect } = props;
+  const { bgCanvas, bgCanvasCtx, onStartSelect } = props;
 
   const interactiveState = useRef({
     move: false,
@@ -30,6 +31,7 @@ export const Editor: React.FC<{
   const stage = useRef<Konva.Stage>();
   const editor = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
+  const editorCanvas = useRef<HTMLDivElement>(null);
   const [sizeInfo, setSizeInfo] = useState("");
   const [editorPosSize, editorPosSizeRef, setEditorPosSize] = useRefState({
     top: 0,
@@ -48,6 +50,7 @@ export const Editor: React.FC<{
   const editorStyle = useMemo(() => {
     return {
       ...editorPosSize,
+      display: editorPosSize.width ? "block" : "none",
       transform:
         editorOffset.x || editorOffset.y
           ? `translate(${editorOffset.x}px, ${editorOffset.y}px)`
@@ -109,32 +112,43 @@ export const Editor: React.FC<{
       <div style={editorSizeStyle} className="editor-size">
         {sizeInfo}
       </div>
-      <Stage
-        ref={stage}
-        width={editorPosSize.width}
-        height={editorPosSize.height}
-      >
-        <Layer>
-          <Image
-            image={bgCanvas.current}
-            scaleX={1 / scaleFactor}
-            scaleY={1 / scaleFactor}
-            offsetY={(editorPosSize.top + editorOffset.y) * scaleFactor}
-            offsetX={(editorPosSize.left + editorOffset.x) * scaleFactor}
-          />
-        </Layer>
-        <Layer>
-          {drewNodes.map(({ Node, props }, index) => (
-            // @ts-ignore
-            <Node {...props} key={index} />
-          ))}
-        </Layer>
-      </Stage>
+      <div ref={editorCanvas} className="editor-canvas">
+        <Stage
+          ref={stage}
+          width={editorPosSize.width}
+          height={editorPosSize.height}
+        >
+          <Layer>
+            <Image
+              image={bgCanvas.current}
+              scaleX={1 / scaleFactor}
+              scaleY={1 / scaleFactor}
+              offsetY={(editorPosSize.top + editorOffset.y) * scaleFactor}
+              offsetX={(editorPosSize.left + editorOffset.x) * scaleFactor}
+            />
+          </Layer>
+          <Layer>
+            {drewNodes.map(({ Node, props }, index) => {
+              return (
+                // @ts-ignore
+                <Node {...props} key={index}>
+                  {"childNodes" in props
+                    ? props.childNodes.map(({ Node, props }) => {
+                        return <Node {...props} />;
+                      })
+                    : null}
+                </Node>
+              );
+            })}
+          </Layer>
+        </Stage>
+      </div>
       <Toolbar
         style={toolbarStyle}
         stage={stage}
-        editor={editor}
         drewNodes={drewNodesRef}
+        bgCanvasCtx={bgCanvasCtx}
+        editorCanvas={editorCanvas}
         editorPosSize={editorPosSizeRef}
         interactiveState={interactiveState}
         setDrewNodes={setDrewNodes}

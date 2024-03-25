@@ -1,7 +1,21 @@
-import { Rect, Ellipse, Image as KonvaImage, Group } from "react-konva";
-import Konva from "konva";
+import { Rect, Ellipse, Group } from "react-konva";
+import { RefObject } from "react";
 
-import { DrawNode, DrawTool } from "../../../../types";
+import { DrawNode, DrawShape, DrawTool } from "../../../../types";
+
+type Props<T extends DrawShape> = {
+  drawTool: DrawTool<T>;
+  positions: {
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+  };
+  mousePos: { x: number; y: number };
+  drawingNode: DrawNode<T>;
+  bgCanvasCtx: RefObject<CanvasRenderingContext2D>;
+  setDrawingNodeProps: (props: DrawNode<T>["props"]) => void;
+};
 
 export const getDrawNode = <T extends DrawTool>(
   drawTool: T
@@ -12,15 +26,12 @@ export const getDrawNode = <T extends DrawTool>(
     case "circle":
       return { Node: Ellipse, props: {} };
     case "mosaic":
-      return { Node: Group, props: { children: [] } };
+      return { Node: Group, props: { childNodes: [] } };
   }
 };
 
-export const drawRect = (
-  drawTool: DrawTool<"rect">,
-  positions: { x0: number; y0: number; x1: number; y1: number },
-  setDrawingNodeProps: (props: DrawNode<"rect">["props"]) => void
-) => {
+const drawRect = (props: Props<"rect">) => {
+  const { drawTool, positions, setDrawingNodeProps } = props;
   const { x0, x1, y0, y1 } = positions;
 
   const {
@@ -46,13 +57,9 @@ export const drawRect = (
   });
 };
 
-export const drawCircle = (
-  drawTool: DrawTool<"circle">,
-  positions: { x0: number; y0: number; x1: number; y1: number },
-  setDrawingNodeProps: (props: DrawNode<"circle">["props"]) => void
-) => {
+const drawCircle = (props: Props<"circle">) => {
+  const { drawTool, positions, setDrawingNodeProps } = props;
   const { x0, x1, y0, y1 } = positions;
-
   const {
     options: { color, strokeWidth },
   } = drawTool;
@@ -74,24 +81,44 @@ export const drawCircle = (
   });
 };
 
-export const drawMosaic = (
-  drawTool: DrawTool<"mosaic">,
-  positions: { x0: number; y0: number; x1: number; y1: number },
-  drawingNode: DrawNode<"mosaic">,
-  setDrawingNodeProps: (props: DrawNode<"mosaic">["props"]) => void
-) => {
-  const { x1, y1 } = positions;
+const drawMosaic = (props: Props<"mosaic">) => {
+  const { mousePos, positions, bgCanvasCtx, drawingNode, setDrawingNodeProps } =
+    props;
 
-  const imageObj = new Image();
-  const konvaImage = KonvaImage({
-    image: imageObj,
-    filters: [Konva.Filters.Pixelate],
-    pixelSize: 10,
-    x: x1,
-    y: y1,
-  });
+  const { x1, y1 } = positions;
+  const { scaleFactor } = window.screenInfo;
+  const [r, g, b, a] = bgCanvasCtx.current.getImageData(
+    mousePos.x * scaleFactor,
+    mousePos.y * scaleFactor,
+    1,
+    1
+  ).data;
 
   setDrawingNodeProps({
-    children: drawingNode.props.children.concat(konvaImage),
+    childNodes: drawingNode.props.childNodes.concat({
+      Node: Rect,
+      props: {
+        x: x1 - 5,
+        y: y1 - 5,
+        key: drawingNode.props.childNodes.length,
+        width: 10,
+        height: 10,
+        blurRadius: 5,
+        cornerRadius: 2,
+        fill: `rgba(${r}, ${g}, ${b}, ${a})`,
+      },
+    }),
   });
+};
+
+export const draw = <T extends DrawShape>(props: Props<T>) => {
+  const { drawTool } = props;
+
+  if (drawTool.name === "rect") {
+    drawRect(props as Props<"rect">);
+  } else if (drawTool.name === "circle") {
+    drawCircle(props as Props<"circle">);
+  } else if (drawTool.name === "mosaic") {
+    drawMosaic(props as Props<"mosaic">);
+  }
 };
